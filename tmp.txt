@@ -1,0 +1,82 @@
+warning: editor v0.1.0 (/home/mat/dev/rust/editor) ignoring invalid dependency `cargo-watch` which is missing a lib target
+warning: unused imports: `Color`, `PrintStyledContent`, `terminal`
+ --> src/widget/panel.rs:7:19
+  |
+7 |     style::{self, Color, PrintStyledContent, Stylize},
+  |                   ^^^^^  ^^^^^^^^^^^^^^^^^^
+8 |     terminal,
+  |     ^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unnecessary parentheses around `if` condition
+   --> src/widget/panel.rs:272:40
+    |
+272 | ...                   if (res.0 .0 > widget.width - x_offset) {
+    |                          ^                                  ^
+    |
+    = note: `#[warn(unused_parens)]` on by default
+help: remove these parentheses
+    |
+272 -                                     if (res.0 .0 > widget.width - x_offset) {
+272 +                                     if res.0 .0 > widget.width - x_offset {
+    |
+
+warning: unused import: `Write`
+ --> src/widget/panel.rs:1:23
+  |
+1 | use std::io::{stdout, Write};
+  |                       ^^^^^
+
+warning: unused variable: `newly_loaded`
+  --> src/main.rs:73:24
+   |
+73 |     let (file_content, newly_loaded) = match std::fs::read_to_string(&filepath) {
+   |                        ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_newly_loaded`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: variant `Solid` is never constructed
+  --> src/editor.rs:14:5
+   |
+12 | pub enum BorderStyle {
+   |          ----------- variant in this enum
+13 |     None,
+14 |     Solid,
+   |     ^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: field `save_path` is never read
+   --> src/editor.rs:113:5
+    |
+111 | pub struct TextEditor {
+    |            ---------- field in this struct
+112 |     /// save_path
+113 |     save_path: PathBuf,
+    |     ^^^^^^^^^
+
+warning: type alias `CursorPositionByte` is never used
+  --> src/widget/panel.rs:15:6
+   |
+15 | type CursorPositionByte = usize;
+   |      ^^^^^^^^^^^^^^^^^^
+
+warning: `editor` (bin "editor") generated 7 warnings (run `cargo fix --bin "editor"` to apply 3 suggestions)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.07s
+     Running `target/debug/editor src/main.rs`
+old: 8 4
+old: 7 3
+old: 6 2
+old: 5 1
+widget.scroll_lines: 4
+old: 5 1
+widget.scroll_lines: 3
+old: 5 1
+widget.scroll_lines: 2
+old: 5 1
+widget.scroll_lines: 1
+old: 5 1
+widget.scroll_lines: 0
+old: 4 0
+widget.scroll_lines: 0
