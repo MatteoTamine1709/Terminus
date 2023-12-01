@@ -1,4 +1,5 @@
 mod editor;
+mod event;
 mod terminal;
 mod widget;
 
@@ -9,53 +10,78 @@ use crossterm::{
     style::Color,
     terminal::size,
 };
-use editor::{TextEditor, Widget};
+use editor::TextEditor;
 use terminal::cleanup_terminal;
+use widget::widget::{BorderStyle, Widget};
 
-use widget::panel::{panel_event, panel_render};
+use crate::widget::{no_event::no_event, panel::panel_event, widget::WidgetID};
 
-pub fn main_loop(file_content: String, save_path: &PathBuf) {
-    let (width, height) = size().unwrap();
+// use widget::panel::{panel_event, panel_render};
+
+pub fn main_loop(file_content: String, save_path: &PathBuf, newly_loaded: bool) {
+    let (mut width, height) = size().unwrap();
+    width -= 1;
     println!("width: {}, height: {}", width, height);
-    terminal::setup_terminal(false);
+    terminal::setup_terminal(true);
     let mut editor = TextEditor::new(save_path);
     let mut main = Widget::new(
+        WidgetID::Main as usize,
         file_content.clone(),
+        5,
         0,
-        0,
-        width as usize - 1,
+        width as usize,
         height as usize - 1,
         Color::White,
         Color::Reset,
         true,
-        editor::BorderStyle::None,
-        panel_render,
+        true,
+        BorderStyle::None,
         panel_event,
     );
 
-    let tmp = Widget::new(
-        file_content.clone(),
-        80,
-        6,
-        6 as usize,
-        6 as usize,
-        Color::Blue,
-        Color::Red,
+    let status_bar = Widget::new(
+        WidgetID::Status as usize,
+        save_path.to_str().unwrap().to_string(),
+        0,
+        height as usize - 1,
+        width as usize,
+        1 as usize,
+        Color::Black,
+        Color::White,
         false,
-        editor::BorderStyle::Dashed,
-        panel_render,
-        panel_event,
+        false,
+        BorderStyle::None,
+        no_event,
     );
-    main.add_widget(tmp);
+
+    let mut line_number_str = String::new();
+    for i in 0..main.height {
+        line_number_str.push_str(&format!("{}\n", i + 1));
+    }
+    let line_number = Widget::new(
+        WidgetID::LineNumber as usize,
+        line_number_str,
+        0,
+        0,
+        4 as usize,
+        height as usize - 1,
+        Color::DarkGrey,
+        Color::Black,
+        false,
+        false,
+        BorderStyle::None,
+        no_event,
+    );
+    main.add_widget(status_bar);
+    main.add_widget(line_number);
+    let pos = main.update_cursor_position_and_view();
     editor.add_widget(main);
 
-    editor.render((0, 0));
+    editor.render(pos);
 
-    loop {
+    while editor.running {
         if (poll(std::time::Duration::from_millis(100))).unwrap() {
-            if editor.event(read().unwrap()) {
-                break;
-            }
+            editor.event(read().unwrap());
         }
     }
     cleanup_terminal("Done");
@@ -79,5 +105,5 @@ fn main() {
         }
     };
 
-    main_loop(file_content, &PathBuf::from(filepath));
+    main_loop(file_content, &PathBuf::from(filepath), newly_loaded);
 }

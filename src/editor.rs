@@ -1,146 +1,43 @@
 use std::path::PathBuf;
 
-use crossterm::{cursor, event::Event, queue, style::Color, terminal};
-use ropey::Rope;
-
+use crossterm::{cursor, event::Event, execute, queue, terminal};
 use std::io::{stdout, Write};
 
-type ShouldExit = bool;
-type CursorPosition = (usize, usize);
-type CursorPositionByte = usize;
-
-pub enum BorderStyle {
-    None,
-    Solid,
-    Dashed,
-}
-
-/// a widget
-pub struct Widget {
-    /// the text
-    pub buffer: Rope,
-
-    pub x: usize,
-    pub y: usize,
-    pub width: usize,
-    pub height: usize,
-
-    /// the color
-    pub color: Color,
-    pub background_color: Color,
-
-    pub focused: bool,
-
-    pub render: fn(&mut Widget, &mut TextEditor),
-    pub event: fn(&mut Widget, &mut TextEditor, Event) -> (CursorPosition, ShouldExit),
-
-    /// scolled lines
-    pub scroll_lines: usize,
-
-    /// scrolled columns
-    pub scroll_columns: usize,
-
-    pub boder_style: BorderStyle,
-    pub cursor: CursorPositionByte,
-    pub cursor_position: CursorPosition,
-
-    pub focused_widget: Option<usize>,
-    pub widgets: Vec<Widget>,
-}
-
-impl Widget {
-    pub fn new(
-        text: String,
-        x: usize,
-        y: usize,
-        width: usize,
-        height: usize,
-        color: Color,
-        background_color: Color,
-        focused: bool,
-        boder_style: BorderStyle,
-        render: fn(&mut Widget, &mut TextEditor),
-        event: fn(&mut Widget, &mut TextEditor, Event) -> (CursorPosition, ShouldExit),
-    ) -> Self {
-        Self {
-            buffer: Rope::from_str(&text),
-            x,
-            y,
-            width,
-            height,
-            color,
-            background_color,
-            focused,
-            boder_style,
-            render,
-            event,
-            ..Default::default()
-        }
-    }
-
-    pub fn add_widget(&mut self, widget: Widget) {
-        self.widgets.push(widget);
-    }
-}
-
-impl Default for Widget {
-    fn default() -> Self {
-        // Return a new Widget with default values here
-        Self {
-            buffer: Rope::from_str(""),
-            scroll_lines: 0,
-            scroll_columns: 0,
-            color: Color::White,
-            background_color: Color::Black,
-            x: 0,
-            y: 0,
-            width: 0,
-            height: 0,
-            focused: false,
-            render: |_, _| {},
-            event: |_, _, _| ((0, 0), false),
-            boder_style: BorderStyle::None,
-            focused_widget: None,
-            cursor: 0,
-            cursor_position: (0, 0),
-            widgets: Vec::new(),
-        }
-    }
-}
+use super::widget::widget::{CursorPosition, Widget};
 
 pub struct TextEditor {
     /// save_path
     save_path: PathBuf,
 
+    pub running: bool,
     /// widgets
     widgets: Vec<Widget>,
-
-    /// focused widget
-    focused_widget: Option<usize>,
 }
 
 impl TextEditor {
     pub fn new(save_path: &PathBuf) -> Self {
         Self {
+            running: true,
             save_path: save_path.clone(),
             widgets: Vec::new(),
-            focused_widget: None,
         }
     }
 
     pub fn add_widget(&mut self, widget: Widget) {
-        if widget.focused {
-            self.focused_widget = Some(self.widgets.len());
-        }
         self.widgets.push(widget);
+        let pos = self
+            .widgets
+            .last_mut()
+            .unwrap()
+            .update_cursor_position_and_view();
+        execute!(stdout(), cursor::MoveTo(pos.0 as u16, pos.1 as u16)).unwrap();
+        stdout().flush().unwrap();
     }
 
     pub fn render(&mut self, cursor_position: CursorPosition) {
         queue!(std::io::stdout(), terminal::Clear(terminal::ClearType::All)).unwrap();
-        for i in 0..self.widgets.len() {
-            let mut widget = std::mem::take(&mut self.widgets[i]);
-            (widget.render)(&mut widget, self);
-            self.widgets[i] = widget;
+        for widget in &mut self.widgets {
+            widget.render();
         }
         queue!(
             stdout(),
@@ -152,16 +49,18 @@ impl TextEditor {
         stdout().flush().unwrap();
     }
 
-    pub fn event(&mut self, event: Event) -> ShouldExit {
-        if let Some(focused_widget) = self.focused_widget {
-            let mut widget = std::mem::take(&mut self.widgets[focused_widget]);
-            let (cursor_position, should_exit) = (widget.event)(&mut widget, self, event);
-            self.widgets[focused_widget] = widget;
-            self.render(cursor_position);
-            should_exit
-        } else {
-            false
+    pub fn event(&mut self, event: Event) {
+        let len = self.widgets.len();
+        let mut cursor_position = (0, 0);
+        for i in 0..len {
+            if self.widgets[i].focused {
+                let mut widget = std::mem::take(&mut self.widgets[i]);
+                let (cursor_position_local, _) = (widget.event)(&mut widget, self, event.clone());
+                self.widgets[i] = widget;
+                cursor_position = cursor_position_local;
+            }
         }
+        self.render(cursor_position);
     }
 
     // pub fn get_text(&self) -> RopeSlice {
