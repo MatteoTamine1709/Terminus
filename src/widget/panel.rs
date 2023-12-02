@@ -58,6 +58,11 @@ pub fn panel_event(
                         widget.text_position += 1;
                         update_status_bar(widget, true, false);
                     }
+                    crossterm::event::KeyCode::Enter => {
+                        widget.buffer.insert_char(widget.text_position, '\n');
+                        widget.text_position += 1;
+                        update_status_bar(widget, true, false);
+                    }
                     crossterm::event::KeyCode::Backspace => {
                         if widget.text_position > 0 {
                             widget
@@ -183,15 +188,30 @@ fn update_status_bar(widget: &mut Widget, written: bool, saved: bool) {
 }
 
 fn update_line_number(widget: &mut Widget) {
+    let is_relative = true;
     for i in 0..widget.widgets.len() {
         if widget.widgets[i].id == WidgetID::LineNumber as usize {
+            widget.widgets[i].colors = vec![(None, None); widget.buffer.len_lines()];
             let mut line_number = String::new();
             for j in widget.scroll_lines..(widget.scroll_lines + widget.height) {
                 // Padded to the right
-                let value: String = (j + 1).to_string();
-                line_number.push_str(&" ".repeat(widget.widgets[i].width - value.len()));
-                line_number.push_str(&value);
-                line_number.push('\n');
+                if is_relative {
+                    let pos = widget.update_cursor_position_and_view();
+                    let v: i32 = (j as i32) - ((pos.1 + widget.scroll_lines) as i32);
+                    let value: String = if v == 0 {
+                        (j + 1).to_string()
+                    } else {
+                        (v.abs()).to_string()
+                    };
+                    line_number.push_str(&" ".repeat(widget.widgets[i].width - value.len()));
+                    line_number.push_str(&value);
+                    line_number.push('\n');
+                } else {
+                    let value: String = (j + 1).to_string();
+                    line_number.push_str(&" ".repeat(widget.widgets[i].width - value.len()));
+                    line_number.push_str(&value);
+                    line_number.push('\n');
+                }
             }
             widget.widgets[i].buffer = ropey::Rope::from_str(&line_number);
             break;

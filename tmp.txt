@@ -1,52 +1,26 @@
 warning: editor v0.1.0 (/home/mat/dev/rust/Terminus) ignoring invalid dependency `cargo-watch` which is missing a lib target
    Compiling editor v0.1.0 (/home/mat/dev/rust/Terminus)
-warning: unused imports: `Duration`, `Instant`
- --> src/widget/command_line.rs:1:17
-  |
-1 | use std::time::{Duration, Instant};
-  |                 ^^^^^^^^  ^^^^^^^
-  |
-  = note: `#[warn(unused_imports)]` on by default
-
-warning: unused import: `once_cell::sync::Lazy`
- --> src/widget/command_line.rs:8:5
-  |
-8 | use once_cell::sync::Lazy;
-  |     ^^^^^^^^^^^^^^^^^^^^^
-
-warning: unused imports: `Arc`, `Mutex`
-  --> src/widget/panel.rs:15:17
-   |
-15 | use std::sync::{Arc, Mutex};
-   |                 ^^^  ^^^^^
-
-warning: unused import: `time::Duration`
- --> src/main.rs:6:31
-  |
-6 | use std::{env, path::PathBuf, time::Duration};
-  |                               ^^^^^^^^^^^^^^
-
 warning: unused variable: `editor`
-  --> src/widget/command_line.rs:14:5
+  --> src/widget/command_line.rs:11:5
    |
-14 |     editor: &mut TextEditor,
+11 |     editor: &mut TextEditor,
    |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_editor`
    |
    = note: `#[warn(unused_variables)]` on by default
 
 warning: unused variable: `event`
-  --> src/widget/command_line.rs:15:5
+  --> src/widget/command_line.rs:12:5
    |
-15 |     event: Event,
+12 |     event: Event,
    |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_event`
 
 warning: static `IS_INTERRUPTED` is never used
-  --> src/widget/command_line.rs:10:12
-   |
-10 | static mut IS_INTERRUPTED: bool = false;
-   |            ^^^^^^^^^^^^^^
-   |
-   = note: `#[warn(dead_code)]` on by default
+ --> src/widget/command_line.rs:7:12
+  |
+7 | static mut IS_INTERRUPTED: bool = false;
+  |            ^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` on by default
 
 warning: variants `Solid` and `Dashed` are never constructed
   --> src/widget/widget.rs:27:5
@@ -59,6 +33,6 @@ warning: variants `Solid` and `Dashed` are never constructed
 28 |     Dashed,
    |     ^^^^^^
 
-warning: `editor` (bin "editor") generated 8 warnings (run `cargo fix --bin "editor"` to apply 6 suggestions)
-    Finished dev [unoptimized + debuginfo] target(s) in 0.64s
+warning: `editor` (bin "editor") generated 4 warnings (run `cargo fix --bin "editor"` to apply 2 suggestions)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.84s
      Running `target/debug/editor src/main.rs`

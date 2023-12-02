@@ -40,8 +40,9 @@ pub struct Widget {
     pub height: usize,
 
     /// the color
-    pub fg: Color,
-    pub bg: Color,
+    pub default_fg: Color,
+    pub default_bg: Color,
+    pub colors: Vec<(Option<Color>, Option<Color>)>,
 
     pub focused: bool,
     pub targetable: bool,
@@ -76,15 +77,19 @@ impl Widget {
         boder_style: BorderStyle,
         event: fn(&mut Widget, &mut TextEditor, Event) -> (CursorPosition, ShouldExit),
     ) -> Self {
+        let buffer = Rope::from_str(&text);
+        let mut colors = Vec::new();
+        colors.resize(buffer.len_chars(), (None, None));
         Self {
             id,
-            buffer: Rope::from_str(&text),
+            buffer,
             x,
             y,
             width,
             height,
-            fg,
-            bg,
+            default_fg: fg,
+            default_bg: bg,
+            colors,
             focused,
             targetable,
             boder_style,
@@ -186,7 +191,9 @@ impl Widget {
             queue!(stdout, cursor::MoveTo(x as u16, y as u16)).unwrap();
             queue!(
                 stdout,
-                style::PrintStyledContent(line_to_display.with(self.fg).on(self.bg))
+                style::PrintStyledContent(
+                    line_to_display.with(self.default_fg).on(self.default_bg)
+                )
             )
             .unwrap();
             y += 1;
@@ -240,12 +247,13 @@ impl Default for Widget {
             buffer: Rope::from_str(""),
             scroll_lines: 0,
             scroll_columns: 0,
-            fg: Color::White,
-            bg: Color::Black,
+            default_fg: Color::White,
+            default_bg: Color::Black,
             x: 0,
             y: 0,
             width: 0,
             height: 0,
+            colors: Vec::new(),
             focused: false,
             event: |_, _, _| ((0, 0), false),
             processed: false,
