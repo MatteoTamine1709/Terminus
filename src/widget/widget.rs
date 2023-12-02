@@ -1,11 +1,10 @@
-use std::io::{stdout, Write};
+use std::io::stdout;
 
 use crossterm::{
     cursor::{self},
     event::Event,
     queue,
-    style::{self, Color, PrintStyledContent, Stylize},
-    terminal,
+    style::{self, Color, Stylize},
 };
 
 use ropey::{Rope, RopeSlice};
@@ -20,6 +19,7 @@ pub enum WidgetID {
     Main,
     Status,
     LineNumber,
+    CommandLine,
 }
 
 pub enum BorderStyle {

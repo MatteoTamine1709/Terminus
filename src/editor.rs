@@ -7,7 +7,7 @@ use super::widget::widget::{CursorPosition, Widget};
 
 pub struct TextEditor {
     /// save_path
-    save_path: PathBuf,
+    pub save_path: PathBuf,
 
     pub running: bool,
     /// widgets
@@ -62,57 +62,4 @@ impl TextEditor {
         }
         self.render(cursor_position);
     }
-
-    // pub fn get_text(&self) -> RopeSlice {
-    //     self.text.slice(..)
-    // }
-
-    // /// get the number of lines scrolled
-    // pub fn get_lines_scrolled(&self) -> usize {
-    //     self.scroll_lines
-    // }
-
-    // /// get the number of columns scrolled
-    // pub fn get_columns_scrolled(&self) -> usize {
-    //     self.scroll_columns
-    // }
-
-    // /// convert the contents of the editor to a string
-    // pub fn to_string(&self) -> String {
-    //     self.text.to_string()
-    // }
-
-    // /// get the number of lines
-    // pub fn len_lines(&self) -> usize {
-    //     self.text.len_lines()
-    // }
-
-    // /// get the top row that is visible
-    // pub fn get_first_visible_line(&self) -> usize {
-    //     self.scroll_lines
-    // }
-
-    // /// get the current line the cursor is on
-    // pub fn get_current_line(&self) -> usize {
-    //     self.text.byte_to_line(self.cursor)
-    // }
-
-    // pub fn get_row_and_column(&self) -> (usize, usize) {
-    //     // get the line
-    //     let line_num = self.text.byte_to_line(self.cursor);
-
-    //     // get the real line
-    //     let line = self.text.line(line_num);
-
-    //     // get where it starts
-    //     let line_start = self.text.line_to_char(line_num);
-
-    //     // get where we are, in chars
-    //     let line_pos = self.text.byte_to_char(self.cursor) - line_start;
-
-    //     // and loop over the line until we are at the right width
-    //     let column = line_pos;
-
-    //     (line_num, column)
-    // }
 }

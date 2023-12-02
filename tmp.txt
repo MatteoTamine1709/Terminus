@@ -1,37 +1,50 @@
 warning: editor v0.1.0 (/home/mat/dev/rust/Terminus) ignoring invalid dependency `cargo-watch` which is missing a lib target
    Compiling editor v0.1.0 (/home/mat/dev/rust/Terminus)
-warning: unused imports: `PrintStyledContent`, `terminal`
- --> src/widget/widget.rs:7:26
+warning: unused imports: `Duration`, `Instant`
+ --> src/widget/command_line.rs:1:17
   |
-7 |     style::{self, Color, PrintStyledContent, Stylize},
-  |                          ^^^^^^^^^^^^^^^^^^
-8 |     terminal,
-  |     ^^^^^^^^
+1 | use std::time::{Duration, Instant};
+  |                 ^^^^^^^^  ^^^^^^^
   |
   = note: `#[warn(unused_imports)]` on by default
 
-warning: unused import: `Write`
- --> src/widget/widget.rs:1:23
+warning: unused import: `once_cell::sync::Lazy`
+ --> src/widget/command_line.rs:8:5
   |
-1 | use std::io::{stdout, Write};
-  |                       ^^^^^
+8 | use once_cell::sync::Lazy;
+  |     ^^^^^^^^^^^^^^^^^^^^^
 
-warning: unused variable: `newly_loaded`
-  --> src/main.rs:21:61
+warning: unused imports: `Arc`, `Mutex`
+  --> src/widget/panel.rs:15:17
    |
-21 | pub fn main_loop(file_content: String, save_path: &PathBuf, newly_loaded: bool) {
-   |                                                             ^^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_newly_loaded`
+15 | use std::sync::{Arc, Mutex};
+   |                 ^^^  ^^^^^
+
+warning: unused import: `time::Duration`
+ --> src/main.rs:6:31
+  |
+6 | use std::{env, path::PathBuf, time::Duration};
+  |                               ^^^^^^^^^^^^^^
+
+warning: unused variable: `editor`
+  --> src/widget/command_line.rs:14:5
+   |
+14 |     editor: &mut TextEditor,
+   |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_editor`
    |
    = note: `#[warn(unused_variables)]` on by default
 
-warning: field `save_path` is never read
-  --> src/editor.rs:10:5
+warning: unused variable: `event`
+  --> src/widget/command_line.rs:15:5
    |
-8  | pub struct TextEditor {
-   |            ---------- field in this struct
-9  |     /// save_path
-10 |     save_path: PathBuf,
-   |     ^^^^^^^^^
+15 |     event: Event,
+   |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_event`
+
+warning: static `IS_INTERRUPTED` is never used
+  --> src/widget/command_line.rs:10:12
+   |
+10 | static mut IS_INTERRUPTED: bool = false;
+   |            ^^^^^^^^^^^^^^
    |
    = note: `#[warn(dead_code)]` on by default
 
@@ -46,6 +59,6 @@ warning: variants `Solid` and `Dashed` are never constructed
 28 |     Dashed,
    |     ^^^^^^
 
-warning: `editor` (bin "editor") generated 5 warnings (run `cargo fix --bin "editor"` to apply 2 suggestions)
-    Finished dev [unoptimized + debuginfo] target(s) in 0.57s
+warning: `editor` (bin "editor") generated 8 warnings (run `cargo fix --bin "editor"` to apply 6 suggestions)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.64s
      Running `target/debug/editor src/main.rs`

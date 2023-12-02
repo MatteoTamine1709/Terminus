@@ -671,6 +671,7 @@ version = "0.1.0"
 dependencies = [
  "cargo-watch",
  "crossterm",
+ "once_cell",
  "ropey",
  "serde",
  "tokio",

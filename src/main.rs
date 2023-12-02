@@ -14,11 +14,13 @@ use editor::TextEditor;
 use terminal::cleanup_terminal;
 use widget::widget::{BorderStyle, Widget};
 
-use crate::widget::{no_event::no_event, panel::panel_event, widget::WidgetID};
+use crate::widget::{
+    command_line::command_line, no_event::no_event, panel::panel_event, widget::WidgetID,
+};
 
 // use widget::panel::{panel_event, panel_render};
 
-pub fn main_loop(file_content: String, save_path: &PathBuf, newly_loaded: bool) {
+pub fn main_loop(file_content: String, save_path: &PathBuf) {
     let (mut width, height) = size().unwrap();
     width -= 1;
     println!("width: {}, height: {}", width, height);
@@ -30,7 +32,7 @@ pub fn main_loop(file_content: String, save_path: &PathBuf, newly_loaded: bool) 
         5,
         0,
         width as usize,
-        height as usize - 1,
+        height as usize - 2,
         Color::White,
         Color::Reset,
         true,
@@ -43,7 +45,7 @@ pub fn main_loop(file_content: String, save_path: &PathBuf, newly_loaded: bool) 
         WidgetID::Status as usize,
         save_path.to_str().unwrap().to_string(),
         0,
-        height as usize - 1,
+        height as usize - 2,
         width as usize,
         1 as usize,
         Color::Black,
@@ -54,17 +56,13 @@ pub fn main_loop(file_content: String, save_path: &PathBuf, newly_loaded: bool) 
         no_event,
     );
 
-    let mut line_number_str = String::new();
-    for i in 0..main.height {
-        line_number_str.push_str(&format!("{}\n", i + 1));
-    }
     let line_number = Widget::new(
         WidgetID::LineNumber as usize,
-        line_number_str,
+        String::new(),
         0,
         0,
         4 as usize,
-        height as usize - 1,
+        height as usize - 2,
         Color::DarkGrey,
         Color::Black,
         false,
@@ -72,11 +70,28 @@ pub fn main_loop(file_content: String, save_path: &PathBuf, newly_loaded: bool) 
         BorderStyle::None,
         no_event,
     );
+
+    let command_line = Widget::new(
+        WidgetID::CommandLine as usize,
+        String::new(),
+        0,
+        height as usize - 1,
+        width as usize,
+        1 as usize,
+        Color::White,
+        Color::Black,
+        false,
+        false,
+        BorderStyle::None,
+        command_line,
+    );
+    main.add_widget(command_line);
     main.add_widget(status_bar);
     main.add_widget(line_number);
     let pos = main.update_cursor_position_and_view();
     editor.add_widget(main);
 
+    editor.event(crossterm::event::Event::FocusGained);
     editor.render(pos);
 
     while editor.running {
@@ -88,15 +103,10 @@ pub fn main_loop(file_content: String, save_path: &PathBuf, newly_loaded: bool) 
 }
 
 fn main() {
-    // match enable_raw_mode() {
-    //     Ok(_) => {},
-    //     Err(e) => panic!("ERROR: Could not enable raw mode: {}", e),
-    // }
-
     let mut args = env::args();
     let _ = args.next().unwrap();
     let filepath = args.next().expect("ERROR: No file given");
-    let (file_content, newly_loaded) = match std::fs::read_to_string(&filepath) {
+    let (file_content, _) = match std::fs::read_to_string(&filepath) {
         Ok(x) => (x, false),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => (String::new(), true),
         Err(e) => {
@@ -105,5 +115,5 @@ fn main() {
         }
     };
 
-    main_loop(file_content, &PathBuf::from(filepath), newly_loaded);
+    main_loop(file_content, &PathBuf::from(filepath));
 }
