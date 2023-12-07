@@ -1,19 +1,5 @@
 warning: editor v0.1.0 (/home/mat/dev/rust/Terminus) ignoring invalid dependency `cargo-watch` which is missing a lib target
    Compiling editor v0.1.0 (/home/mat/dev/rust/Terminus)
-warning: unused variable: `editor`
-  --> src/widget/command_line.rs:11:5
-   |
-11 |     editor: &mut TextEditor,
-   |     ^^^^^^ help: if this is intentional, prefix it with an underscore: `_editor`
-   |
-   = note: `#[warn(unused_variables)]` on by default
-
-warning: unused variable: `event`
-  --> src/widget/command_line.rs:12:5
-   |
-12 |     event: Event,
-   |     ^^^^^ help: if this is intentional, prefix it with an underscore: `_event`
-
 warning: static `IS_INTERRUPTED` is never used
  --> src/widget/command_line.rs:7:12
   |
@@ -33,6 +19,6 @@ warning: variants `Solid` and `Dashed` are never constructed
 28 |     Dashed,
    |     ^^^^^^
 
-warning: `editor` (bin "editor") generated 4 warnings (run `cargo fix --bin "editor"` to apply 2 suggestions)
-    Finished dev [unoptimized + debuginfo] target(s) in 0.84s
+warning: `editor` (bin "editor") generated 2 warnings
+    Finished dev [unoptimized + debuginfo] target(s) in 0.63s
      Running `target/debug/editor src/main.rs`

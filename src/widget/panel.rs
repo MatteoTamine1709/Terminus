@@ -188,7 +188,7 @@ fn update_status_bar(widget: &mut Widget, written: bool, saved: bool) {
 }
 
 fn update_line_number(widget: &mut Widget) {
-    let is_relative = true;
+    let is_relative = false;
     for i in 0..widget.widgets.len() {
         if widget.widgets[i].id == WidgetID::LineNumber as usize {
             widget.widgets[i].colors = vec![(None, None); widget.buffer.len_lines()];
