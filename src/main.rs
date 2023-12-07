@@ -1,5 +1,4 @@
 mod editor;
-mod event;
 mod terminal;
 mod widget;
 
@@ -12,13 +11,12 @@ use crossterm::{
 };
 use editor::TextEditor;
 use terminal::cleanup_terminal;
-use widget::widget::{BorderStyle, Widget};
+use widget::widget::BorderStyle;
 
 use crate::widget::{
-    command_line::command_line, no_event::no_event, panel::panel_event, widget::WidgetID,
+    command_line::CommandLine, line_number::LineNumber, panel::Panel, status_bar::StatusBar,
+    widget::ProcessEvent,
 };
-
-// use widget::panel::{panel_event, panel_render};
 
 pub fn main_loop(file_content: String, save_path: &PathBuf) {
     let (mut width, height) = size().unwrap();
@@ -26,8 +24,7 @@ pub fn main_loop(file_content: String, save_path: &PathBuf) {
     println!("width: {}, height: {}", width, height);
     terminal::setup_terminal(true);
     let mut editor = TextEditor::new(save_path);
-    let mut main = Widget::new(
-        WidgetID::Main as usize,
+    let mut main = Panel::new(
         file_content.clone(),
         5,
         0,
@@ -38,11 +35,9 @@ pub fn main_loop(file_content: String, save_path: &PathBuf) {
         true,
         true,
         BorderStyle::None,
-        panel_event,
     );
 
-    let status_bar = Widget::new(
-        WidgetID::Status as usize,
+    let status_bar: Box<StatusBar> = StatusBar::new(
         save_path.to_str().unwrap().to_string(),
         0,
         height as usize - 2,
@@ -53,11 +48,9 @@ pub fn main_loop(file_content: String, save_path: &PathBuf) {
         false,
         false,
         BorderStyle::None,
-        no_event,
     );
 
-    let line_number = Widget::new(
-        WidgetID::LineNumber as usize,
+    let line_number = LineNumber::new(
         String::new(),
         0,
         0,
@@ -68,11 +61,9 @@ pub fn main_loop(file_content: String, save_path: &PathBuf) {
         false,
         false,
         BorderStyle::None,
-        no_event,
     );
 
-    let command_line = Widget::new(
-        WidgetID::CommandLine as usize,
+    let command_line = CommandLine::new(
         String::new(),
         0,
         height as usize - 1,
@@ -83,20 +74,20 @@ pub fn main_loop(file_content: String, save_path: &PathBuf) {
         false,
         false,
         BorderStyle::None,
-        command_line,
     );
-    main.add_widget(command_line);
-    main.add_widget(status_bar);
-    main.add_widget(line_number);
     let pos = main.update_cursor_position_and_view();
+    editor.add_widget(status_bar);
+    editor.add_widget(line_number);
     editor.add_widget(main);
+    editor.add_widget(command_line);
+    // editor.add_widget(tmp);
 
-    editor.event(crossterm::event::Event::FocusGained);
+    editor.event(&crossterm::event::Event::FocusGained);
     editor.render(pos);
 
     while editor.running {
         if (poll(std::time::Duration::from_millis(100))).unwrap() {
-            editor.event(read().unwrap());
+            editor.event(&read().unwrap());
         }
     }
     cleanup_terminal("Done");

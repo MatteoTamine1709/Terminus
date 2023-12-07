@@ -1,24 +1,384 @@
 warning: editor v0.1.0 (/home/mat/dev/rust/Terminus) ignoring invalid dependency `cargo-watch` which is missing a lib target
-   Compiling editor v0.1.0 (/home/mat/dev/rust/Terminus)
+warning: unused import: `Widget`
+ --> src/widget/line_number.rs:7:80
+  |
+7 |     BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, Widget, WidgetID,
+  |                                                                                ^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `crate::widget::command_line::write_to_command_line`
+ --> src/widget/panel.rs:6:5
+  |
+6 | use crate::widget::command_line::write_to_command_line;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `Widget`
+ --> src/widget/panel.rs:9:68
+  |
+9 | use super::widget::{BorderStyle, CursorPositionByte, ProcessEvent, Widget};
+  |                                                                    ^^^^^^
+
+warning: unused import: `std::fs`
+  --> src/widget/panel.rs:14:5
+   |
+14 | use std::fs;
+   |     ^^^^^^^
+
+warning: unused imports: `ErrorKind`, `self`
+  --> src/widget/panel.rs:15:15
+   |
+15 | use std::io::{self, ErrorKind};
+   |               ^^^^  ^^^^^^^^^
+
+warning: unused import: `std::path::Path`
+  --> src/widget/panel.rs:16:5
+   |
+16 | use std::path::Path;
+   |     ^^^^^^^^^^^^^^^
+
+warning: unused import: `Widget`
+  --> src/widget/status_bar.rs:13:80
+   |
+13 |     BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, Widget, WidgetID,
+   |                                                                                ^^^^^^
+
+warning: unused import: `KeyModifiers`
+ --> src/widget/widget.rs:5:20
+  |
+5 |     event::{Event, KeyModifiers},
+  |                    ^^^^^^^^^^^^
+
+warning: unused variable: `editor`
+   --> src/widget/command_line.rs:181:9
+    |
+181 |         editor: &mut TextEditor,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_editor`
+    |
+    = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `editor`
+   --> src/widget/panel.rs:191:9
+    |
+191 |         editor: &mut TextEditor,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_editor`
+
+warning: unused variable: `last_char`
+  --> src/widget/status_bar.rs:75:17
+   |
+75 |             let last_char = file_info.chars().last().unwrap();
+   |                 ^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_last_char`
+
+warning: variable does not need to be mutable
+  --> src/widget/status_bar.rs:74:17
+   |
+74 |             let mut file_info = parts[0].to_string();
+   |                 ----^^^^^^^^^
+   |                 |
+   |                 help: remove this `mut`
+   |
+   = note: `#[warn(unused_mut)]` on by default
+
+warning: unused variable: `editor`
+   --> src/widget/widget.rs:320:9
+    |
+320 |         editor: &mut TextEditor,
+    |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_editor`
+
+warning: unused variable: `event`
+   --> src/widget/widget.rs:321:9
+    |
+321 |         event: &Event,
+    |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_event`
+
 warning: static `IS_INTERRUPTED` is never used
- --> src/widget/command_line.rs:7:12
-  |
-7 | static mut IS_INTERRUPTED: bool = false;
-  |            ^^^^^^^^^^^^^^
-  |
-  = note: `#[warn(dead_code)]` on by default
+  --> src/widget/command_line.rs:10:12
+   |
+10 | static mut IS_INTERRUPTED: bool = false;
+   |            ^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` on by default
+
+warning: function `write_to_command_line` is never used
+   --> src/widget/command_line.rs:213:8
+    |
+213 | pub fn write_to_command_line(widget: &mut Widget, text: &str) {
+    |        ^^^^^^^^^^^^^^^^^^^^^
+
+warning: static `IS_INTERRUPTED` is never used
+  --> src/widget/line_number.rs:10:12
+   |
+10 | static mut IS_INTERRUPTED: bool = false;
+   |            ^^^^^^^^^^^^^^
+
+warning: variants `None` and `WidgetCount` are never constructed
+  --> src/widget/widget.rs:20:5
+   |
+19 | pub enum WidgetID {
+   |          -------- variants in this enum
+20 |     None,
+   |     ^^^^
+...
+25 |     WidgetCount,
+   |     ^^^^^^^^^^^
+   |
+   = note: `WidgetID` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
 
 warning: variants `Solid` and `Dashed` are never constructed
-  --> src/widget/widget.rs:27:5
+  --> src/widget/widget.rs:31:5
    |
-25 | pub enum BorderStyle {
+29 | pub enum BorderStyle {
    |          ----------- variants in this enum
-26 |     None,
-27 |     Solid,
+30 |     None,
+31 |     Solid,
    |     ^^^^^
-28 |     Dashed,
+32 |     Dashed,
    |     ^^^^^^
+   |
+   = note: `BorderStyle` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
 
-warning: `editor` (bin "editor") generated 2 warnings
-    Finished dev [unoptimized + debuginfo] target(s) in 0.63s
+warning: associated function `new` is never used
+   --> src/widget/widget.rs:297:12
+    |
+296 | impl Widget {
+    | ----------- associated function in this implementation
+297 |     pub fn new() -> Box<Self> {
+    |            ^^^
+
+warning: `editor` (bin "editor") generated 20 warnings (run `cargo fix --bin "editor"` to apply 14 suggestions)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.06s
      Running `target/debug/editor src/main.rs`
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 0 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 1 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 2 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 3 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155
+get_cursor_view 4 0 0 0 0 38 155

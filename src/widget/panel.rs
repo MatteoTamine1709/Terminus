@@ -1,220 +1,282 @@
 use crossterm::event::Event;
+use crossterm::style::Color;
 use once_cell::sync::Lazy;
+use ropey::Rope;
 
-use crate::widget::command_line::write_to_command_line;
-use crate::{editor::TextEditor, event::process_event, widget::widget::WidgetID};
+use crate::{editor::TextEditor, widget::widget::WidgetID};
 
-use super::widget::Widget;
+use super::widget::{BorderStyle, CursorPositionByte, ProcessEvent};
 
 type ShouldExit = bool;
 type CursorPosition = (usize, usize);
 
-use std::fs;
-use std::io::{self, ErrorKind};
-use std::path::Path;
 use std::time::{Duration, Instant};
 
 static mut CLEAR_COMMAND_LINE_TIMING: Lazy<Instant> = Lazy::new(|| Instant::now());
 static mut CLEAR_COMMAND_LINE_DURATION: Lazy<Duration> = Lazy::new(|| Duration::from_secs(5));
 
-pub fn panel_event(
-    widget: &mut Widget,
-    editor: &mut TextEditor,
-    event: Event,
-) -> (CursorPosition, ShouldExit) {
-    if widget.processed {
-        return (widget.update_cursor_position_and_view(), false);
+pub struct Panel {
+    pub id: WidgetID,
+    /// the text
+    pub buffer: Rope,
+
+    pub x: usize,
+    pub y: usize,
+    pub width: usize,
+    pub height: usize,
+
+    /// the color
+    pub default_fg: Color,
+    pub default_bg: Color,
+
+    pub focused: bool,
+    pub targetable: bool,
+
+    /// scolled lines
+    pub scroll_lines: usize,
+
+    /// scrolled columns
+    pub scroll_columns: usize,
+
+    pub boder_style: BorderStyle,
+    pub text_position: CursorPositionByte,
+}
+
+impl Panel {
+    pub fn new(
+        text: String,
+        x: usize,
+        y: usize,
+        width: usize,
+        height: usize,
+        fg: Color,
+        bg: Color,
+        focused: bool,
+        targetable: bool,
+        boder_style: BorderStyle,
+    ) -> Box<Self> {
+        let buffer = Rope::from_str(&text);
+        Box::new(Self {
+            id: WidgetID::Panel,
+            buffer,
+            x,
+            y,
+            width,
+            height,
+            default_fg: fg,
+            default_bg: bg,
+            focused,
+            targetable,
+            boder_style,
+            ..Default::default()
+        })
     }
-    if widget.focused {
-        for i in 0..widget.widgets.len() {
-            if widget.widgets[i].focused {
-                let mut res = (widget.widgets[i].event)(&mut widget.widgets[i], editor, event);
-                if res.1 {
-                    widget.widgets[i].focused = false;
-                    res.0 = widget.update_cursor_position_and_view();
-                }
-                res.1 = false;
-                return res;
-            }
+}
+
+impl Default for Panel {
+    fn default() -> Self {
+        // Return a new Widget with default values here
+        Self {
+            id: WidgetID::Panel,
+            buffer: Rope::from_str(""),
+            scroll_lines: 0,
+            scroll_columns: 0,
+            default_fg: Color::White,
+            default_bg: Color::Black,
+            x: 0,
+            y: 0,
+            width: 0,
+            height: 0,
+            focused: false,
+            targetable: false,
+            boder_style: BorderStyle::None,
+            text_position: 0,
         }
-        if let Event::Key(key_event) = event {
-            match key_event.modifiers {
-                crossterm::event::KeyModifiers::NONE => match key_event.code {
-                    crossterm::event::KeyCode::Tab => {
-                        let targetable_widgets: usize = widget
-                            .widgets
-                            .iter()
-                            .filter(|w| w.targetable)
-                            .map(|w| w.id)
-                            .sum();
-                        if targetable_widgets == 0 {
-                            return (widget.update_cursor_position_and_view(), true);
+    }
+}
+
+impl ProcessEvent for Panel {
+    fn get_border_style(&self) -> BorderStyle {
+        self.boder_style
+    }
+    fn get_buffer(&self) -> &Rope {
+        &self.buffer
+    }
+    fn get_height(&self) -> usize {
+        self.height
+    }
+    fn get_width(&self) -> usize {
+        self.width
+    }
+    fn get_x(&self) -> usize {
+        self.x
+    }
+    fn get_y(&self) -> usize {
+        self.y
+    }
+    fn get_scroll_lines(&self) -> usize {
+        self.scroll_lines
+    }
+    fn get_scroll_columns(&self) -> usize {
+        self.scroll_columns
+    }
+    fn get_default_fg(&self) -> Color {
+        self.default_fg
+    }
+    fn get_default_bg(&self) -> Color {
+        self.default_bg
+    }
+    fn get_text_position(&self) -> CursorPositionByte {
+        self.text_position
+    }
+    fn get_focused(&self) -> bool {
+        self.focused
+    }
+    fn get_targetable(&self) -> bool {
+        self.targetable
+    }
+    fn get_id(&self) -> WidgetID {
+        WidgetID::Panel
+    }
+
+    fn set_border_style(&mut self, border_style: BorderStyle) {
+        self.boder_style = border_style;
+    }
+    fn set_buffer(&mut self, buffer: Rope) {
+        self.buffer = buffer;
+    }
+    fn set_height(&mut self, height: usize) {
+        self.height = height;
+    }
+    fn set_width(&mut self, width: usize) {
+        self.width = width;
+    }
+    fn set_x(&mut self, x: usize) {
+        self.x = x;
+    }
+    fn set_y(&mut self, y: usize) {
+        self.y = y;
+    }
+    fn set_scroll_lines(&mut self, scroll_lines: usize) {
+        self.scroll_lines = scroll_lines;
+    }
+    fn set_scroll_columns(&mut self, scroll_columns: usize) {
+        self.scroll_columns = scroll_columns;
+    }
+    fn set_default_fg(&mut self, default_fg: Color) {
+        self.default_fg = default_fg;
+    }
+    fn set_default_bg(&mut self, default_bg: Color) {
+        self.default_bg = default_bg;
+    }
+    fn set_text_position(&mut self, text_position: CursorPositionByte) {
+        self.text_position = text_position;
+    }
+    fn set_focused(&mut self, focused: bool) {
+        self.focused = focused;
+    }
+    fn set_targetable(&mut self, targetable: bool) {
+        self.targetable = targetable;
+    }
+    fn set_id(&mut self, id: WidgetID) {
+        self.id = id;
+    }
+
+    fn event(
+        &mut self,
+        _editor: &mut TextEditor,
+        event: &Event,
+    ) -> Option<(CursorPosition, ShouldExit)> {
+        if self.focused {
+            if let Event::Key(key_event) = event {
+                match key_event.modifiers {
+                    crossterm::event::KeyModifiers::NONE => match key_event.code {
+                        crossterm::event::KeyCode::Tab => {
+                            // let targetable_widgets: usize = editor
+                            //     .widgets
+                            //     .iter()
+                            //     .filter(|w| w.get_targetable())
+                            //     .map(|w| w.get_id())
+                            //     .count();
+                            // if targetable_widgets == 0 {
+                            //     return Some((self.update_cursor_position_and_view(), true));
+                            // }
+                            // editor.widgets[0].set_focused(true);
+                            // return Some((
+                            //     editor.widgets[0].update_cursor_position_and_view(),
+                            //     false,
+                            // ));
                         }
-                        widget.widgets[0].focused = true;
-                        return (widget.widgets[0].update_cursor_position_and_view(), false);
-                    }
-                    crossterm::event::KeyCode::Char(c) => {
-                        widget.buffer.insert_char(widget.text_position, c);
-                        widget.text_position += 1;
-                        update_status_bar(widget, true, false);
-                    }
-                    crossterm::event::KeyCode::Enter => {
-                        widget.buffer.insert_char(widget.text_position, '\n');
-                        widget.text_position += 1;
-                        update_status_bar(widget, true, false);
-                    }
-                    crossterm::event::KeyCode::Backspace => {
-                        if widget.text_position > 0 {
-                            widget
-                                .buffer
-                                .remove(widget.text_position - 1..widget.text_position);
-                            widget.text_position -= 1;
-                            update_status_bar(widget, true, false);
+                        crossterm::event::KeyCode::Char(c) => {
+                            self.buffer.insert_char(self.text_position, c);
+                            self.text_position += 1;
+                            // update_status_bar(self, editor, true, false);
                         }
-                    }
-                    _ => {}
-                },
-                crossterm::event::KeyModifiers::CONTROL => match key_event.code {
-                    crossterm::event::KeyCode::Char(c) => match c {
-                        's' => {
-                            for i in 0..widget.widgets.len() {
-                                if widget.widgets[i].id == WidgetID::CommandLine as usize {
-                                    write_to_command_line(&mut widget.widgets[i], "Saving...");
-                                    unsafe {
-                                        CLEAR_COMMAND_LINE_TIMING = Lazy::new(|| Instant::now());
-                                        CLEAR_COMMAND_LINE_DURATION =
-                                            Lazy::new(|| Duration::from_secs(2));
-                                    };
-                                    break;
-                                }
-                            }
-                            let writer = fs::File::create(&editor.save_path).unwrap();
-                            widget.buffer.write_to(writer).unwrap();
-                            update_status_bar(widget, false, true);
+                        crossterm::event::KeyCode::Enter => {
+                            self.buffer.insert_char(self.text_position, '\n');
+                            self.text_position += 1;
+                            // update_status_bar(self, editor, true, false);
                         }
-                        'f' => {
-                            for i in 0..widget.widgets.len() {
-                                if widget.widgets[i].id == WidgetID::CommandLine as usize {
-                                    widget.widgets[i].focused = true;
-                                    return (
-                                        widget.widgets[i].update_cursor_position_and_view(),
-                                        false,
-                                    );
-                                }
+                        crossterm::event::KeyCode::Backspace => {
+                            if self.text_position > 0 {
+                                self.buffer
+                                    .remove(self.text_position - 1..self.text_position);
+                                self.text_position -= 1;
+                                // update_status_bar(widget, editor, true, false);
                             }
                         }
                         _ => {}
                     },
+                    crossterm::event::KeyModifiers::CONTROL => match key_event.code {
+                        crossterm::event::KeyCode::Char(c) => match c {
+                            's' => {
+                                // for i in 0..editor.widgets.len() {
+                                //     if editor.widgets[i].get_id() == WidgetID::CommandLine {
+                                //         // write_to_command_line(&mut editor.widgets[i], "Saving...");
+                                //         unsafe {
+                                //             CLEAR_COMMAND_LINE_TIMING =
+                                //                 Lazy::new(|| Instant::now());
+                                //             CLEAR_COMMAND_LINE_DURATION =
+                                //                 Lazy::new(|| Duration::from_secs(2));
+                                //         };
+                                //         break;
+                                //     }
+                                // }
+                                // let writer = fs::File::create(&editor.save_path).unwrap();
+                                // self.buffer.write_to(writer).unwrap();
+                                // update_status_bar(widget, editor, false, true);
+                            }
+                            'f' => {
+                                // for i in 0..editor.widgets.len() {
+                                //     if editor.widgets[i].get_id() == WidgetID::CommandLine {
+                                //         editor.widgets[i].set_focused(true);
+                                //         return Some((
+                                //             editor.widgets[i].update_cursor_position_and_view(),
+                                //             false,
+                                //         ));
+                                //     }
+                                // }
+                            }
+                            _ => {}
+                        },
+                        _ => {}
+                    },
                     _ => {}
-                },
-                _ => {}
-            }
-        }
-        widget.processed = true;
-        let res = process_event(editor, widget, event);
-        widget.processed = false;
-        update_line_number(widget);
-        update_status_bar(widget, false, false);
-
-        if unsafe { CLEAR_COMMAND_LINE_TIMING.elapsed() } > unsafe { *CLEAR_COMMAND_LINE_DURATION }
-        {
-            for i in 0..widget.widgets.len() {
-                if widget.widgets[i].id == WidgetID::CommandLine as usize {
-                    write_to_command_line(&mut widget.widgets[i], "");
                 }
             }
+            // update_line_number(widget, editor);
+            // update_status_bar(widget, editor, false, false);
+
+            if unsafe { CLEAR_COMMAND_LINE_TIMING.elapsed() }
+                > unsafe { *CLEAR_COMMAND_LINE_DURATION }
+            {
+                // for i in 0..editor.widgets.len() {
+                //     if editor.widgets[i].get_id() == WidgetID::CommandLine {
+                //         write_to_command_line(&mut editor.widgets[i], "");
+                //     }
+                // }
+            }
         }
-        return res;
-    }
-    panic!("Unreachable code")
-}
-
-fn get_git_branch_name(repo_path: &Path) -> io::Result<String> {
-    let head_path = repo_path.join(".git/HEAD");
-    let content = fs::read_to_string(head_path)?;
-    content
-        .split_whitespace()
-        .last()
-        .and_then(|s| s.split('/').last())
-        .map(String::from)
-        .ok_or(io::Error::new(ErrorKind::Other, "Branch name not found"))
-}
-
-static TOTAL_FILE_INFO_WIDTH: usize = 25;
-static TOTAL_POS_INFO_WIDTH: usize = 20;
-
-fn update_status_bar(widget: &mut Widget, written: bool, saved: bool) {
-    for i in 0..widget.widgets.len() {
-        if widget.widgets[i].id == WidgetID::Status as usize {
-            let current = widget.widgets[i].buffer.to_string();
-            let parts = current.split(' ').collect::<Vec<&str>>();
-            let mut file_info = parts[0].to_string();
-            let last_char = file_info.chars().last().unwrap();
-            if last_char != '*' && written {
-                file_info.push('*');
-            }
-            if saved {
-                file_info = file_info.replace("*", "");
-            }
-
-            let mut status_bar = String::new();
-            status_bar.push_str(&file_info);
-            status_bar.push_str(&" ".repeat(TOTAL_FILE_INFO_WIDTH - file_info.len()));
-
-            let mut pos_info = String::new();
-            let pos = widget.update_cursor_position_and_view();
-            let x = pos.0 + 1 - widget.x + widget.scroll_columns;
-            let y = pos.1 + 1 - widget.y + widget.scroll_lines;
-            let percent = y * 100 / widget.buffer.len_lines();
-            pos_info.push_str(&format!("{}% ({},{})", percent, x, y));
-            status_bar.push_str(&pos_info);
-            status_bar.push_str(&" ".repeat(TOTAL_POS_INFO_WIDTH - pos_info.len()));
-
-            // Get git branch
-
-            match get_git_branch_name(Path::new(".")) {
-                Ok(branch_name) => {
-                    status_bar.push_str(&format!("Git: {}", branch_name));
-                }
-                Err(_e) => {
-                    status_bar.push_str(&format!("Git: /"));
-                }
-            }
-
-            widget.widgets[i].buffer = ropey::Rope::from_str(&status_bar);
-            break;
-        }
-    }
-}
-
-fn update_line_number(widget: &mut Widget) {
-    let is_relative = false;
-    for i in 0..widget.widgets.len() {
-        if widget.widgets[i].id == WidgetID::LineNumber as usize {
-            widget.widgets[i].colors = vec![(None, None); widget.buffer.len_lines()];
-            let mut line_number = String::new();
-            for j in widget.scroll_lines..(widget.scroll_lines + widget.height) {
-                // Padded to the right
-                if is_relative {
-                    let pos = widget.update_cursor_position_and_view();
-                    let v: i32 = (j as i32) - ((pos.1 + widget.scroll_lines) as i32);
-                    let value: String = if v == 0 {
-                        (j + 1).to_string()
-                    } else {
-                        (v.abs()).to_string()
-                    };
-                    line_number.push_str(&" ".repeat(widget.widgets[i].width - value.len()));
-                    line_number.push_str(&value);
-                    line_number.push('\n');
-                } else {
-                    let value: String = (j + 1).to_string();
-                    line_number.push_str(&" ".repeat(widget.widgets[i].width - value.len()));
-                    line_number.push_str(&value);
-                    line_number.push('\n');
-                }
-            }
-            widget.widgets[i].buffer = ropey::Rope::from_str(&line_number);
-            break;
-        }
+        None
     }
 }

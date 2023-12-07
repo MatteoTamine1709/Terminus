@@ -1,13 +1,33 @@
+use std::{
+    fs,
+    io::{self, ErrorKind},
+    path::Path,
+};
+
 use crossterm::{event::Event, style::Color};
 use ropey::Rope;
 
 use crate::editor::TextEditor;
 
 use super::widget::{
-    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, Widget, WidgetID,
+    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, WidgetID,
 };
 
-pub struct CommandLine {
+fn get_git_branch_name(repo_path: &Path) -> io::Result<String> {
+    let head_path = repo_path.join(".git/HEAD");
+    let content = fs::read_to_string(head_path)?;
+    content
+        .split_whitespace()
+        .last()
+        .and_then(|s| s.split('/').last())
+        .map(String::from)
+        .ok_or(io::Error::new(ErrorKind::Other, "Branch name not found"))
+}
+
+static TOTAL_FILE_INFO_WIDTH: usize = 25;
+static TOTAL_POS_INFO_WIDTH: usize = 20;
+
+pub struct StatusBar {
     pub id: WidgetID,
     /// the text
     pub buffer: Rope,
@@ -34,7 +54,7 @@ pub struct CommandLine {
     pub text_position: CursorPositionByte,
 }
 
-impl CommandLine {
+impl StatusBar {
     pub fn new(
         text: String,
         x: usize,
@@ -47,9 +67,35 @@ impl CommandLine {
         targetable: bool,
         boder_style: BorderStyle,
     ) -> Box<Self> {
-        let buffer = Rope::from_str(&text);
+        let mut buffer = Rope::from_str(&text);
+        {
+            let current = buffer.to_string();
+            let parts = current.split(' ').collect::<Vec<&str>>();
+            let file_info = parts[0].to_string();
+
+            let mut status_bar = String::new();
+            status_bar.push_str(&file_info);
+            status_bar.push_str(&" ".repeat(TOTAL_FILE_INFO_WIDTH - file_info.len()));
+
+            let mut pos_info = String::new();
+            pos_info.push_str("Position unavailable");
+            status_bar.push_str(&" ".repeat(TOTAL_POS_INFO_WIDTH - pos_info.len()));
+
+            // Get git branch
+
+            match get_git_branch_name(Path::new(".")) {
+                Ok(branch_name) => {
+                    status_bar.push_str(&format!("Git: {}", branch_name));
+                }
+                Err(_e) => {
+                    status_bar.push_str(&format!("Git: /"));
+                }
+            }
+
+            buffer = ropey::Rope::from_str(&status_bar);
+        }
         Box::new(Self {
-            id: WidgetID::CommandLine,
+            id: WidgetID::StatusBar,
             buffer,
             x,
             y,
@@ -65,11 +111,11 @@ impl CommandLine {
     }
 }
 
-impl Default for CommandLine {
+impl Default for StatusBar {
     fn default() -> Self {
         // Return a new Widget with default values here
         Self {
-            id: WidgetID::CommandLine,
+            id: WidgetID::StatusBar,
             buffer: Rope::from_str(""),
             scroll_lines: 0,
             scroll_columns: 0,
@@ -87,7 +133,7 @@ impl Default for CommandLine {
     }
 }
 
-impl ProcessEvent for CommandLine {
+impl ProcessEvent for StatusBar {
     fn get_border_style(&self) -> BorderStyle {
         self.boder_style
     }
@@ -128,7 +174,7 @@ impl ProcessEvent for CommandLine {
         self.targetable
     }
     fn get_id(&self) -> WidgetID {
-        WidgetID::CommandLine
+        WidgetID::StatusBar
     }
 
     fn set_border_style(&mut self, border_style: BorderStyle) {
@@ -176,7 +222,7 @@ impl ProcessEvent for CommandLine {
 
     fn event(
         &mut self,
-        _editor: &mut TextEditor,
+        editor: &mut TextEditor,
         event: &Event,
     ) -> Option<(CursorPosition, ShouldExit)> {
         if self.focused {
@@ -204,10 +250,48 @@ impl ProcessEvent for CommandLine {
                 }
             }
         }
+        {
+            let current = self.get_buffer().to_string();
+            let parts = current.split(' ').collect::<Vec<&str>>();
+            let mut file_info = parts[0].to_string();
+            let last_char = file_info.chars().last().unwrap();
+            if last_char != '*' && editor.written {
+                file_info.push('*');
+            }
+            if editor.saved {
+                file_info = file_info.replace("*", "");
+            }
+
+            let mut status_bar = String::new();
+            status_bar.push_str(&file_info);
+            status_bar.push_str(&" ".repeat(TOTAL_FILE_INFO_WIDTH - file_info.len()));
+
+            let mut pos_info = String::new();
+            if let Some(panel) = editor.get_widget(WidgetID::Panel) {
+                let pos = panel.get_cursor_view();
+                let x = pos.0 + 1 - panel.get_x() + panel.get_scroll_columns();
+                let y = pos.1 + 1 - panel.get_y() + panel.get_scroll_lines();
+                let percent = y * 100 / panel.get_buffer().len_lines();
+                pos_info.push_str(&format!("{}% ({},{})", percent, x, y));
+                status_bar.push_str(&pos_info);
+            } else {
+                pos_info.push_str("Position unavailable");
+            }
+            status_bar.push_str(&" ".repeat(TOTAL_POS_INFO_WIDTH - pos_info.len()));
+
+            // Get git branch
+
+            match get_git_branch_name(Path::new(".")) {
+                Ok(branch_name) => {
+                    status_bar.push_str(&format!("Git: {}", branch_name));
+                }
+                Err(_e) => {
+                    status_bar.push_str(&format!("Git: /"));
+                }
+            }
+
+            self.set_buffer(ropey::Rope::from_str(&status_bar));
+        }
         None
     }
-}
-
-pub fn _write_to_command_line(widget: &mut Widget, text: &str) {
-    widget.buffer = ropey::Rope::from_str(text);
 }

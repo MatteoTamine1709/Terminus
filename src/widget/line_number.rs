@@ -4,10 +4,10 @@ use ropey::Rope;
 use crate::editor::TextEditor;
 
 use super::widget::{
-    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, Widget, WidgetID,
+    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, WidgetID,
 };
 
-pub struct CommandLine {
+pub struct LineNumber {
     pub id: WidgetID,
     /// the text
     pub buffer: Rope,
@@ -34,7 +34,7 @@ pub struct CommandLine {
     pub text_position: CursorPositionByte,
 }
 
-impl CommandLine {
+impl LineNumber {
     pub fn new(
         text: String,
         x: usize,
@@ -49,7 +49,7 @@ impl CommandLine {
     ) -> Box<Self> {
         let buffer = Rope::from_str(&text);
         Box::new(Self {
-            id: WidgetID::CommandLine,
+            id: WidgetID::LineNumber,
             buffer,
             x,
             y,
@@ -65,11 +65,11 @@ impl CommandLine {
     }
 }
 
-impl Default for CommandLine {
+impl Default for LineNumber {
     fn default() -> Self {
         // Return a new Widget with default values here
         Self {
-            id: WidgetID::CommandLine,
+            id: WidgetID::LineNumber,
             buffer: Rope::from_str(""),
             scroll_lines: 0,
             scroll_columns: 0,
@@ -87,7 +87,7 @@ impl Default for CommandLine {
     }
 }
 
-impl ProcessEvent for CommandLine {
+impl ProcessEvent for LineNumber {
     fn get_border_style(&self) -> BorderStyle {
         self.boder_style
     }
@@ -128,7 +128,7 @@ impl ProcessEvent for CommandLine {
         self.targetable
     }
     fn get_id(&self) -> WidgetID {
-        WidgetID::CommandLine
+        WidgetID::LineNumber
     }
 
     fn set_border_style(&mut self, border_style: BorderStyle) {
@@ -176,7 +176,7 @@ impl ProcessEvent for CommandLine {
 
     fn event(
         &mut self,
-        _editor: &mut TextEditor,
+        editor: &mut TextEditor,
         event: &Event,
     ) -> Option<(CursorPosition, ShouldExit)> {
         if self.focused {
@@ -204,10 +204,33 @@ impl ProcessEvent for CommandLine {
                 }
             }
         }
+        {
+            if let Some(panel) = editor.get_widget(WidgetID::Panel) {
+                let is_relative = true;
+                let mut line_number = String::new();
+                for j in panel.get_scroll_lines()..(panel.get_scroll_lines() + panel.get_height()) {
+                    // Padded to the right
+                    if is_relative {
+                        let pos = panel.get_cursor_view();
+                        let v: i32 = (j as i32) - ((pos.1 + panel.get_scroll_lines()) as i32);
+                        let value: String = if v == 0 {
+                            (j + 1).to_string()
+                        } else {
+                            (v.abs()).to_string()
+                        };
+                        line_number.push_str(&" ".repeat(self.width - value.len()));
+                        line_number.push_str(&value);
+                        line_number.push('\n');
+                    } else {
+                        let value: String = (j + 1).to_string();
+                        line_number.push_str(&" ".repeat(self.width - value.len()));
+                        line_number.push_str(&value);
+                        line_number.push('\n');
+                    }
+                }
+                self.set_buffer(ropey::Rope::from_str(&line_number));
+            }
+        }
         None
     }
-}
-
-pub fn _write_to_command_line(widget: &mut Widget, text: &str) {
-    widget.buffer = ropey::Rope::from_str(text);
 }
