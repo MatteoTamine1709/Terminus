@@ -1,22 +1,14 @@
 use crossterm::event::Event;
 use crossterm::style::Color;
-use once_cell::sync::Lazy;
 use ropey::Rope;
 
-use crate::{editor::TextEditor, widget::widget::WidgetID};
+use crate::{editor::TextEditor, widget::widget::WidgetType};
 
-use super::widget::{BorderStyle, CursorPositionByte, ProcessEvent};
-
-type ShouldExit = bool;
-type CursorPosition = (usize, usize);
-
-use std::time::{Duration, Instant};
-
-static mut CLEAR_COMMAND_LINE_TIMING: Lazy<Instant> = Lazy::new(|| Instant::now());
-static mut CLEAR_COMMAND_LINE_DURATION: Lazy<Duration> = Lazy::new(|| Duration::from_secs(5));
+use super::widget::{BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit};
 
 pub struct Panel {
-    pub id: WidgetID,
+    pub typ: WidgetType,
+    pub id: usize,
     /// the text
     pub buffer: Rope,
 
@@ -40,6 +32,8 @@ pub struct Panel {
 
     pub boder_style: BorderStyle,
     pub text_position: CursorPositionByte,
+
+    pub z_index: usize,
 }
 
 impl Panel {
@@ -57,7 +51,7 @@ impl Panel {
     ) -> Box<Self> {
         let buffer = Rope::from_str(&text);
         Box::new(Self {
-            id: WidgetID::Panel,
+            typ: WidgetType::Panel,
             buffer,
             x,
             y,
@@ -77,7 +71,8 @@ impl Default for Panel {
     fn default() -> Self {
         // Return a new Widget with default values here
         Self {
-            id: WidgetID::Panel,
+            typ: WidgetType::Panel,
+            id: 0,
             buffer: Rope::from_str(""),
             scroll_lines: 0,
             scroll_columns: 0,
@@ -91,6 +86,7 @@ impl Default for Panel {
             targetable: false,
             boder_style: BorderStyle::None,
             text_position: 0,
+            z_index: 0,
         }
     }
 }
@@ -135,8 +131,14 @@ impl ProcessEvent for Panel {
     fn get_targetable(&self) -> bool {
         self.targetable
     }
-    fn get_id(&self) -> WidgetID {
-        WidgetID::Panel
+    fn get_type(&self) -> WidgetType {
+        WidgetType::Panel
+    }
+    fn get_id(&self) -> usize {
+        self.id
+    }
+    fn get_z_idx(&self) -> usize {
+        self.z_index
     }
 
     fn set_border_style(&mut self, border_style: BorderStyle) {
@@ -178,13 +180,19 @@ impl ProcessEvent for Panel {
     fn set_targetable(&mut self, targetable: bool) {
         self.targetable = targetable;
     }
-    fn set_id(&mut self, id: WidgetID) {
+    fn set_type(&mut self, id: WidgetType) {
+        self.typ = id;
+    }
+    fn set_id(&mut self, id: usize) {
         self.id = id;
+    }
+    fn set_z_idx(&mut self, z_index: usize) {
+        self.z_index = z_index;
     }
 
     fn event(
         &mut self,
-        _editor: &mut TextEditor,
+        editor: &mut TextEditor,
         event: &Event,
     ) -> Option<(CursorPosition, ShouldExit)> {
         if self.focused {
@@ -210,52 +218,72 @@ impl ProcessEvent for Panel {
                         crossterm::event::KeyCode::Char(c) => {
                             self.buffer.insert_char(self.text_position, c);
                             self.text_position += 1;
-                            // update_status_bar(self, editor, true, false);
+                            editor.written = true;
+                            return Some((self.update_cursor_position_and_view(), false));
                         }
                         crossterm::event::KeyCode::Enter => {
                             self.buffer.insert_char(self.text_position, '\n');
                             self.text_position += 1;
-                            // update_status_bar(self, editor, true, false);
+                            editor.written = true;
+                            return Some((self.update_cursor_position_and_view(), false));
                         }
                         crossterm::event::KeyCode::Backspace => {
                             if self.text_position > 0 {
                                 self.buffer
                                     .remove(self.text_position - 1..self.text_position);
                                 self.text_position -= 1;
-                                // update_status_bar(widget, editor, true, false);
+                                editor.written = true;
                             }
+                            return Some((self.update_cursor_position_and_view(), false));
                         }
                         _ => {}
                     },
                     crossterm::event::KeyModifiers::CONTROL => match key_event.code {
                         crossterm::event::KeyCode::Char(c) => match c {
+                            'e' => {
+                                if let Some(command_line) =
+                                    editor.get_widget_mut(WidgetType::CommandLine)
+                                {
+                                    command_line.set_focused(true);
+                                    // command_line.set_scroll_columns(0);
+                                    // command_line.set_buffer(Rope::from_str(""));
+                                    // command_line.set_text_position(0);
+                                    let cursor_position =
+                                        command_line.update_cursor_position_and_view();
+                                    editor.focused_widget_id = command_line.get_id();
+                                    return Some((cursor_position, false));
+                                }
+                            }
                             's' => {
-                                // for i in 0..editor.widgets.len() {
-                                //     if editor.widgets[i].get_id() == WidgetID::CommandLine {
-                                //         // write_to_command_line(&mut editor.widgets[i], "Saving...");
-                                //         unsafe {
-                                //             CLEAR_COMMAND_LINE_TIMING =
-                                //                 Lazy::new(|| Instant::now());
-                                //             CLEAR_COMMAND_LINE_DURATION =
-                                //                 Lazy::new(|| Duration::from_secs(2));
-                                //         };
-                                //         break;
-                                //     }
-                                // }
-                                // let writer = fs::File::create(&editor.save_path).unwrap();
-                                // self.buffer.write_to(writer).unwrap();
-                                // update_status_bar(widget, editor, false, true);
+                                let saved_path = editor.save_path.clone();
+                                if let Some(command_line) =
+                                    editor.get_widget_mut(WidgetType::CommandLine)
+                                {
+                                    command_line.set_focused(true);
+                                    command_line.set_scroll_columns(0);
+                                    let save = format!(":save {}", saved_path.to_str().unwrap());
+                                    command_line.set_buffer(Rope::from_str(save.as_str()));
+                                    command_line.set_text_position(save.len());
+                                    let cursor_position =
+                                        command_line.update_cursor_position_and_view();
+                                    editor.focused_widget_id = command_line.get_id();
+                                    return Some((cursor_position, false));
+                                }
                             }
                             'f' => {
-                                // for i in 0..editor.widgets.len() {
-                                //     if editor.widgets[i].get_id() == WidgetID::CommandLine {
-                                //         editor.widgets[i].set_focused(true);
-                                //         return Some((
-                                //             editor.widgets[i].update_cursor_position_and_view(),
-                                //             false,
-                                //         ));
-                                //     }
-                                // }
+                                if let Some(command_line) =
+                                    editor.get_widget_mut(WidgetType::CommandLine)
+                                {
+                                    command_line.set_focused(true);
+                                    command_line.set_scroll_columns(0);
+                                    let find = ":find ";
+                                    command_line.set_buffer(Rope::from_str(find));
+                                    command_line.set_text_position(find.len());
+                                    let cursor_position =
+                                        command_line.update_cursor_position_and_view();
+                                    editor.focused_widget_id = command_line.get_id();
+                                    return Some((cursor_position, false));
+                                }
                             }
                             _ => {}
                         },
@@ -264,17 +292,19 @@ impl ProcessEvent for Panel {
                     _ => {}
                 }
             }
-            // update_line_number(widget, editor);
-            // update_status_bar(widget, editor, false, false);
-
-            if unsafe { CLEAR_COMMAND_LINE_TIMING.elapsed() }
-                > unsafe { *CLEAR_COMMAND_LINE_DURATION }
-            {
-                // for i in 0..editor.widgets.len() {
-                //     if editor.widgets[i].get_id() == WidgetID::CommandLine {
-                //         write_to_command_line(&mut editor.widgets[i], "");
-                //     }
-                // }
+            if let Event::Mouse(mouse_event) = event {
+                if mouse_event.kind == crossterm::event::MouseEventKind::ScrollDown {
+                    if self.scroll_lines < self.buffer.len_lines() {
+                        self.scroll_lines += 1;
+                        // return Some((self.update_cursor_position_and_view(), false));
+                    }
+                }
+                if mouse_event.kind == crossterm::event::MouseEventKind::ScrollUp {
+                    if self.scroll_lines > 0 {
+                        self.scroll_lines -= 1;
+                        // return Some((self.update_cursor_position_and_view(), false));
+                    }
+                }
             }
         }
         None

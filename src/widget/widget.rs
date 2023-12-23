@@ -12,17 +12,33 @@ use ropey::{Rope, RopeSlice};
 use super::super::editor::TextEditor;
 
 pub type ShouldExit = bool;
-pub type CursorPosition = (usize, usize);
+pub type CursorPosition = (i32, i32);
 pub type CursorPositionByte = usize;
 
 #[derive(PartialEq, Clone, Copy, Debug)]
-pub enum WidgetID {
+pub enum WidgetType {
     None,
+    Popup,
     Panel,
     StatusBar,
     LineNumber,
     CommandLine,
     _WidgetCount,
+}
+
+// Display trait
+impl std::fmt::Display for WidgetType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            WidgetType::None => write!(f, "None"),
+            WidgetType::Popup => write!(f, "Popup"),
+            WidgetType::Panel => write!(f, "Panel"),
+            WidgetType::StatusBar => write!(f, "StatusBar"),
+            WidgetType::LineNumber => write!(f, "LineNumber"),
+            WidgetType::CommandLine => write!(f, "CommandLine"),
+            WidgetType::_WidgetCount => write!(f, "WidgetCount"),
+        }
+    }
 }
 
 #[derive(PartialEq, Clone, Copy)]
@@ -54,7 +70,9 @@ pub trait ProcessEvent {
     fn get_text_position(&self) -> CursorPositionByte;
     fn get_focused(&self) -> bool;
     fn get_targetable(&self) -> bool;
-    fn get_id(&self) -> WidgetID;
+    fn get_type(&self) -> WidgetType;
+    fn get_id(&self) -> usize;
+    fn get_z_idx(&self) -> usize;
 
     fn set_border_style(&mut self, border_style: BorderStyle);
     fn set_x(&mut self, x: usize);
@@ -69,7 +87,9 @@ pub trait ProcessEvent {
     fn set_text_position(&mut self, text_position: CursorPositionByte);
     fn set_focused(&mut self, focused: bool);
     fn set_targetable(&mut self, targetable: bool);
-    fn set_id(&mut self, id: WidgetID);
+    fn set_type(&mut self, id: WidgetType);
+    fn set_id(&mut self, id: usize);
+    fn set_z_idx(&mut self, z_idx: usize);
 
     fn get_offset(&self) -> usize {
         match self.get_border_style() {
@@ -177,7 +197,7 @@ pub trait ProcessEvent {
             if line_to_display.ends_with('\n') {
                 line_to_display.pop();
             }
-            if line_to_display.len() < width {
+            if line_to_display.len() + x < width {
                 line_to_display.push_str(&" ".repeat(width - line_to_display.len() - x));
             }
 
@@ -192,6 +212,18 @@ pub trait ProcessEvent {
             )
             .unwrap();
             y += 1;
+        }
+        for i in 0..(height - lines.len()) {
+            queue!(stdout, cursor::MoveTo(x as u16, (y + i) as u16)).unwrap();
+            queue!(
+                stdout,
+                style::PrintStyledContent(
+                    " ".repeat(width)
+                        .with(self.get_default_fg())
+                        .on(self.get_default_bg())
+                )
+            )
+            .unwrap();
         }
 
         match self.get_border_style() {
@@ -222,52 +254,62 @@ pub trait ProcessEvent {
         if x > self.get_scroll_columns() + self.get_width() - offset - offset {
             self.set_scroll_columns((x + offset) - self.get_width());
         }
+        x += offset + self.get_x();
+        y += offset + self.get_y();
         y -= self.get_scroll_lines();
         x -= self.get_scroll_columns();
-        self.set_text_position(
-            self.get_buffer().line_to_byte(y + self.get_scroll_lines())
-                + x
-                + self.get_scroll_columns(),
-        );
-        (x + offset + self.get_x(), y + offset + self.get_y())
+        (x as i32, y as i32)
     }
 
     fn get_cursor_view(&self) -> CursorPosition {
         let offset = self.get_offset();
-        let mut y = self.get_buffer().byte_to_line(self.get_text_position());
-        let mut x = self.get_text_position() - self.get_buffer().line_to_byte(y);
-        let mut scroll_lines = self.get_scroll_lines();
-        let mut scroll_columns = self.get_scroll_columns();
+        let y = self.get_buffer().byte_to_line(self.get_text_position());
+        let x = self.get_text_position() - self.get_buffer().line_to_byte(y);
+        let scroll_lines = self.get_scroll_lines();
+        let scroll_columns = self.get_scroll_columns();
 
-        eprintln!(
-            "get_cursor_view {:?} {:?} {:?} {:?} {:?} {:?} {:?}",
-            y,
-            x,
-            scroll_lines,
-            scroll_columns,
-            offset,
-            self.get_height(),
-            self.get_width()
-        );
+        // if y < scroll_lines {
+        //     scroll_lines = y;
+        // }
+        // if y > scroll_lines + (self.get_height() - 1) - offset - offset {
+        //     scroll_lines = y - (self.get_height() - 1 - offset);
+        // }
+        // if x < scroll_columns {
+        //     scroll_columns = x;
+        // }
+        // if x > scroll_columns + self.get_width() - offset - offset {
+        //     scroll_columns = (x + offset) - self.get_width();
+        // }
+
+        let y: i32 = y as i32 + offset as i32 + self.get_y() as i32 - scroll_lines as i32;
+        let x: i32 = x as i32 + offset as i32 + self.get_x() as i32 - scroll_columns as i32;
+        (x, y)
+    }
+
+    fn is_cursor_visible(&self) -> bool {
+        let y = self.get_buffer().byte_to_line(self.get_text_position());
+        let x = self.get_text_position() - self.get_buffer().line_to_byte(y);
+        let scroll_lines = self.get_scroll_lines();
+        let scroll_columns = self.get_scroll_columns();
+
         if y < scroll_lines {
-            scroll_lines = y;
+            return false;
         }
-        if y > scroll_lines + (self.get_height() - 1) - offset - offset {
-            scroll_lines = y - (self.get_height() - 1 - offset);
+        if y > scroll_lines + (self.get_height() - 1) {
+            return false;
         }
         if x < scroll_columns {
-            scroll_columns = x;
+            return false;
         }
-        if x > scroll_columns + self.get_width() - offset - offset {
-            scroll_columns = (x + offset) - self.get_width();
+        if x > scroll_columns + self.get_width() {
+            return false;
         }
-        y -= scroll_lines;
-        x -= scroll_columns;
-        (x + offset + self.get_x(), y + offset + self.get_y())
+        true
     }
 }
 pub struct Widget {
-    pub id: WidgetID,
+    pub typ: WidgetType,
+    pub id: usize,
     /// the text
     pub buffer: Rope,
 
@@ -291,12 +333,15 @@ pub struct Widget {
 
     pub boder_style: BorderStyle,
     pub text_position: CursorPositionByte,
+
+    pub z_idx: usize,
 }
 
 impl Widget {
     pub fn _new() -> Box<Self> {
         Box::new(Self {
-            id: WidgetID::None,
+            typ: WidgetType::None,
+            id: 0,
             buffer: Rope::from_str(""),
             x: 0,
             y: 0,
@@ -310,6 +355,7 @@ impl Widget {
             scroll_columns: 0,
             boder_style: BorderStyle::None,
             text_position: 0,
+            z_idx: 0,
         })
     }
 }
@@ -362,8 +408,14 @@ impl ProcessEvent for Widget {
     fn get_targetable(&self) -> bool {
         self.targetable
     }
-    fn get_id(&self) -> WidgetID {
+    fn get_type(&self) -> WidgetType {
+        self.typ
+    }
+    fn get_id(&self) -> usize {
         self.id
+    }
+    fn get_z_idx(&self) -> usize {
+        self.z_idx
     }
 
     fn set_border_style(&mut self, border_style: BorderStyle) {
@@ -405,7 +457,13 @@ impl ProcessEvent for Widget {
     fn set_targetable(&mut self, targetable: bool) {
         self.targetable = targetable;
     }
-    fn set_id(&mut self, id: WidgetID) {
+    fn set_type(&mut self, id: WidgetType) {
+        self.typ = id;
+    }
+    fn set_id(&mut self, id: usize) {
         self.id = id;
+    }
+    fn set_z_idx(&mut self, z_idx: usize) {
+        self.z_idx = z_idx;
     }
 }

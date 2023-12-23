@@ -1,14 +1,38 @@
+use std::{collections::HashMap, fs};
+
 use crossterm::{event::Event, style::Color};
 use ropey::Rope;
 
-use crate::editor::TextEditor;
+use crate::{editor::TextEditor, widget::popup::Popup};
 
 use super::widget::{
-    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, Widget, WidgetID,
+    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, WidgetType,
 };
 
+trait CommandLineCommands {
+    fn quit(
+        command_line: &mut CommandLine,
+        editor: &mut TextEditor,
+        args: Vec<String>,
+        event: Event,
+    );
+    fn find(
+        command_line: &mut CommandLine,
+        editor: &mut TextEditor,
+        args: Vec<String>,
+        event: Event,
+    );
+    fn save(
+        command_line: &mut CommandLine,
+        editor: &mut TextEditor,
+        args: Vec<String>,
+        event: Event,
+    );
+}
+
 pub struct CommandLine {
-    pub id: WidgetID,
+    pub typ: WidgetType,
+    pub id: usize,
     /// the text
     pub buffer: Rope,
 
@@ -32,10 +56,24 @@ pub struct CommandLine {
 
     pub boder_style: BorderStyle,
     pub text_position: CursorPositionByte,
+
+    old_buffer: Rope,
+
+    commands: HashMap<
+        String,
+        fn(command_line: &mut Self, editor: &mut TextEditor, args: Vec<String>, event: Event),
+    >,
+    positions: Vec<CursorPositionByte>,
+    position_idx: usize,
+
+    list_popup: Option<(WidgetType, usize)>,
+
+    z_idx: usize,
 }
 
 impl CommandLine {
     pub fn new(
+        id: usize,
         text: String,
         x: usize,
         y: usize,
@@ -48,8 +86,24 @@ impl CommandLine {
         boder_style: BorderStyle,
     ) -> Box<Self> {
         let buffer = Rope::from_str(&text);
+        let commands = {
+            let mut m: HashMap<
+                String,
+                fn(
+                    command_line: &mut Self,
+                    editor: &mut TextEditor,
+                    args: Vec<String>,
+                    event: Event,
+                ),
+            > = HashMap::new();
+            m.insert(":quit".to_string(), Self::quit);
+            m.insert(":find".to_string(), Self::find);
+            m.insert(":save".to_string(), Self::save);
+            m
+        };
         Box::new(Self {
-            id: WidgetID::CommandLine,
+            typ: WidgetType::CommandLine,
+            id,
             buffer,
             x,
             y,
@@ -60,8 +114,208 @@ impl CommandLine {
             focused,
             targetable,
             boder_style,
+            commands,
             ..Default::default()
         })
+    }
+
+    fn execute_command(&mut self, editor: &mut TextEditor, sens: i32, event: &Event) {
+        if self.positions.len() > 0
+            && self.old_buffer.cmp(&self.buffer) == std::cmp::Ordering::Equal
+        {
+            if sens > 0 {
+                self.next_position(editor);
+            } else {
+                self.prev_position(editor);
+            }
+            return;
+        }
+        let buffer = self.buffer.to_string();
+        let args = buffer
+            .split_whitespace()
+            .map(|s| s.to_string())
+            .collect::<Vec<_>>();
+        if args.len() > 0 {
+            if let Some(command) = self.commands.get(&args[0]) {
+                command(self, editor, args, event.clone())
+            }
+        }
+        self.old_buffer = self.buffer.clone();
+    }
+
+    fn next_position(&mut self, editor: &mut TextEditor) {
+        if self.positions.len() > 0 {
+            self.position_idx += 1;
+            if self.position_idx >= self.positions.len() {
+                self.position_idx = 0;
+            }
+            if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
+                panel.set_text_position(self.positions[self.position_idx]);
+                panel.update_cursor_position_and_view();
+            }
+        }
+    }
+
+    fn prev_position(&mut self, editor: &mut TextEditor) {
+        if self.positions.len() > 0 {
+            if self.position_idx == 0 {
+                self.position_idx = self.positions.len() - 1;
+            } else {
+                self.position_idx -= 1;
+            }
+            if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
+                panel.set_text_position(self.positions[self.position_idx]);
+                panel.update_cursor_position_and_view();
+            }
+        }
+    }
+
+    fn create_popup(&mut self, editor: &mut TextEditor) {
+        // Delete the old popup
+        if let Some((typ, id)) = self.list_popup {
+            editor.remove_widget_id(id, typ);
+        }
+        let mut text = String::new();
+        let mut max_len = 0;
+        for (key, _) in &self.commands {
+            if key.len() > max_len {
+                max_len = key.len();
+            }
+            text.push_str(key);
+            text.push_str("\n");
+        }
+        let mut widget = Popup::new(
+            text,
+            self.get_cursor_view().0 as usize,
+            self.get_cursor_view().1 as usize - self.commands.len() - 2,
+            max_len + 1,
+            self.commands.len() + 1,
+            Color::Grey,
+            Color::Blue,
+            false,
+            false,
+            BorderStyle::Dashed,
+        );
+        widget.set_z_idx(10);
+        self.list_popup = Some((WidgetType::Popup, editor.add_widget(widget)));
+        eprintln!("popup: {:?}", self.list_popup)
+    }
+
+    fn update_popup(&mut self, editor: &mut TextEditor) {
+        if let Some((typ, id)) = self.list_popup {
+            if let Some(widget) = editor.get_widget_id_mut(id, typ) {
+                let current_buffer = self.buffer.to_string();
+                let mut text = String::new();
+                let mut max_len = 0;
+                let mut number_of_commands = 0;
+                for (key, _) in &self.commands {
+                    if key.len() > max_len {
+                        max_len = key.len();
+                    }
+                    if key.starts_with(&current_buffer) || current_buffer.starts_with(key) {
+                        text.push_str(key);
+                        text.push_str("\n");
+                        number_of_commands += 1;
+                    }
+                }
+                widget.set_x(self.get_cursor_view().0 as usize);
+                widget.set_y(self.get_cursor_view().1 as usize - number_of_commands - 2);
+                widget.set_width(max_len + 1);
+                widget.set_height(number_of_commands + 1);
+                widget.set_buffer(Rope::from_str(&text));
+            }
+        }
+    }
+}
+
+impl CommandLineCommands for CommandLine {
+    fn quit(
+        command_line: &mut CommandLine,
+        editor: &mut TextEditor,
+        _args: Vec<String>,
+        _event: Event,
+    ) {
+        if command_line.old_buffer.cmp(&command_line.buffer) == std::cmp::Ordering::Equal {
+            editor.running = false;
+        }
+    }
+
+    fn find(
+        command_line: &mut CommandLine,
+        editor: &mut TextEditor,
+        args: Vec<String>,
+        _event: Event,
+    ) {
+        command_line.positions.clear();
+        command_line.position_idx = 0;
+        if args.len() < 2 {
+            return;
+        }
+        if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
+            let search_term = &args[1];
+            let mut found_pos = panel.get_text_position();
+            let mut found = false;
+            let mut idx = 0;
+            let chunks = panel.get_buffer().chunks().collect::<Vec<_>>();
+            for i in 0..chunks.len() {
+                let found_positions = chunks[i]
+                    .to_lowercase()
+                    .match_indices(search_term.to_lowercase().as_str())
+                    .map(|(pos, _)| pos)
+                    .collect::<Vec<_>>();
+                for pos in found_positions {
+                    if !found && idx + pos >= found_pos {
+                        found = true;
+                        found_pos = idx + pos;
+                        command_line.position_idx = command_line.positions.len();
+                    }
+                    command_line.positions.push(idx + pos);
+                }
+                idx += chunks[i].len();
+            }
+
+            if !found && command_line.positions.len() > 0 {
+                found_pos = command_line.positions[0];
+                command_line.position_idx = 0;
+            }
+            panel.set_text_position(found_pos);
+            panel.update_cursor_position_and_view();
+        }
+    }
+
+    fn save(
+        command_line: &mut CommandLine,
+        editor: &mut TextEditor,
+        args: Vec<String>,
+        event: Event,
+    ) {
+        if args.len() < 2 {
+            return;
+        }
+        // if event != Enter
+        match event {
+            Event::Key(key_event) => {
+                if key_event.code != crossterm::event::KeyCode::Enter {
+                    return;
+                }
+            }
+
+            _ => return,
+        }
+        let path = &args[1];
+        // Save the file
+        if let Some(panel) = editor.get_widget(WidgetType::Panel) {
+            editor.focused_widget_id = panel.get_id();
+        }
+        if let Some(panel) = editor.get_widget(WidgetType::Panel) {
+            fs::write(path, panel.get_buffer().to_string()).unwrap();
+            editor.render(panel.get_cursor_view(), panel.is_cursor_visible());
+            editor.written = false;
+            command_line.buffer = Rope::from_str("");
+            command_line.text_position = 0;
+            command_line.focused = false;
+            command_line.old_buffer = command_line.buffer.clone();
+        }
     }
 }
 
@@ -69,8 +323,10 @@ impl Default for CommandLine {
     fn default() -> Self {
         // Return a new Widget with default values here
         Self {
-            id: WidgetID::CommandLine,
+            typ: WidgetType::CommandLine,
+            id: 0,
             buffer: Rope::from_str(""),
+            old_buffer: Rope::from_str(""),
             scroll_lines: 0,
             scroll_columns: 0,
             default_fg: Color::White,
@@ -83,6 +339,11 @@ impl Default for CommandLine {
             targetable: false,
             boder_style: BorderStyle::None,
             text_position: 0,
+            commands: HashMap::new(),
+            positions: Vec::new(),
+            position_idx: 0,
+            list_popup: None,
+            z_idx: 0,
         }
     }
 }
@@ -127,8 +388,14 @@ impl ProcessEvent for CommandLine {
     fn get_targetable(&self) -> bool {
         self.targetable
     }
-    fn get_id(&self) -> WidgetID {
-        WidgetID::CommandLine
+    fn get_type(&self) -> WidgetType {
+        WidgetType::CommandLine
+    }
+    fn get_id(&self) -> usize {
+        self.id
+    }
+    fn get_z_idx(&self) -> usize {
+        self.z_idx
     }
 
     fn set_border_style(&mut self, border_style: BorderStyle) {
@@ -170,26 +437,47 @@ impl ProcessEvent for CommandLine {
     fn set_targetable(&mut self, targetable: bool) {
         self.targetable = targetable;
     }
-    fn set_id(&mut self, id: WidgetID) {
+    fn set_type(&mut self, id: WidgetType) {
+        self.typ = id;
+    }
+    fn set_id(&mut self, id: usize) {
         self.id = id;
+    }
+    fn set_z_idx(&mut self, z_idx: usize) {
+        self.z_idx = z_idx;
     }
 
     fn event(
         &mut self,
-        _editor: &mut TextEditor,
+        editor: &mut TextEditor,
         event: &Event,
     ) -> Option<(CursorPosition, ShouldExit)> {
         if self.focused {
             if let Event::Key(key_event) = event {
-                match key_event.modifiers {
-                    crossterm::event::KeyModifiers::NONE => match key_event.code {
+                if key_event.modifiers == crossterm::event::KeyModifiers::NONE {
+                    match key_event.code {
+                        crossterm::event::KeyCode::Tab => self.create_popup(editor),
                         crossterm::event::KeyCode::Esc => {
+                            if let Some((typ, id)) = self.list_popup {
+                                editor.remove_widget_id(id, typ);
+                                return Some((self.update_cursor_position_and_view(), false));
+                            }
                             self.focused = false;
-                            return Some((self.update_cursor_position_and_view(), false));
+
+                            if let Some(panel) = editor.get_widget(WidgetType::Panel) {
+                                editor.focused_widget_id = panel.get_id();
+                            }
+                            if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
+                                panel.set_focused(true);
+                                return Some((panel.update_cursor_position_and_view(), false));
+                            }
                         }
                         crossterm::event::KeyCode::Char(c) => {
                             self.buffer.insert_char(self.text_position, c);
                             self.text_position += 1;
+                            self.execute_command(editor, 1, event);
+                            self.update_popup(editor);
+                            return Some((self.update_cursor_position_and_view(), false));
                         }
                         crossterm::event::KeyCode::Backspace => {
                             if self.text_position > 0 {
@@ -197,17 +485,27 @@ impl ProcessEvent for CommandLine {
                                     .remove(self.text_position - 1..self.text_position);
                                 self.text_position -= 1;
                             }
+                            self.execute_command(editor, 1, event);
+                            self.update_popup(editor);
+                            return Some((self.update_cursor_position_and_view(), false));
+                        }
+                        crossterm::event::KeyCode::Enter => {
+                            self.execute_command(editor, 1, event);
                         }
                         _ => {}
-                    },
-                    _ => {}
+                    }
+                }
+                if key_event.modifiers == crossterm::event::KeyModifiers::CONTROL {
+                    match key_event.code {
+                        crossterm::event::KeyCode::Char('j') => {
+                            self.execute_command(editor, -1, event);
+                        }
+                        _ => {}
+                    }
                 }
             }
+            self.update_popup(editor);
         }
-        None
+        return None;
     }
-}
-
-pub fn _write_to_command_line(widget: &mut Widget, text: &str) {
-    widget.buffer = ropey::Rope::from_str(text);
 }

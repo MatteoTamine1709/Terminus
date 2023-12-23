@@ -7,7 +7,7 @@ use crossterm::{
 };
 use std::io::{stdout, Write};
 
-use crate::widget::widget::{ProcessEvent, WidgetID};
+use crate::widget::widget::{ProcessEvent, WidgetType};
 
 use super::widget::widget::CursorPosition;
 
@@ -21,8 +21,9 @@ pub struct TextEditor {
     /// widgets
     widgets: Vec<Box<dyn ProcessEvent>>,
     new_widgets: Vec<Box<dyn ProcessEvent>>,
-    pub focused_widget_id: WidgetID,
-    pub old_cursor_position: CursorPosition,
+    pub focused_widget_id: usize,
+    old_cursor_position: CursorPosition,
+    biggest_id: usize,
 }
 
 impl TextEditor {
@@ -32,15 +33,24 @@ impl TextEditor {
             save_path: save_path.clone(),
             widgets: Vec::new(),
             new_widgets: Vec::new(),
-            focused_widget_id: WidgetID::Panel,
+            focused_widget_id: 0,
             old_cursor_position: (0, 0),
             written: false,
             saved: true,
+            biggest_id: 0,
         }
     }
 
-    pub fn add_widget(&mut self, widget: Box<dyn ProcessEvent>) {
+    pub fn add_widget(&mut self, widget: Box<dyn ProcessEvent>) -> usize {
         self.widgets.push(widget);
+        let idx = self.biggest_id;
+        self.biggest_id += 1;
+        self.widgets.last_mut().unwrap().set_id(idx);
+        eprintln!(
+            "add_widget: {}, type {}",
+            idx,
+            self.widgets.last().unwrap().get_type()
+        );
         let pos = self
             .widgets
             .last_mut()
@@ -48,16 +58,17 @@ impl TextEditor {
             .update_cursor_position_and_view();
         execute!(stdout(), cursor::MoveTo(pos.0 as u16, pos.1 as u16)).unwrap();
         stdout().flush().unwrap();
+        return idx;
     }
 
-    pub fn get_widget(&self, id: WidgetID) -> Option<&Box<dyn ProcessEvent>> {
+    pub fn get_widget(&self, id: WidgetType) -> Option<&Box<dyn ProcessEvent>> {
         for widget in &self.widgets {
-            if widget.get_id() == id {
+            if widget.get_type() == id {
                 return Some(widget);
             }
         }
         for widget in &self.new_widgets {
-            if widget.get_id() == id {
+            if widget.get_type() == id {
                 return Some(widget);
             }
         }
@@ -65,10 +76,89 @@ impl TextEditor {
         None
     }
 
-    pub fn render(&mut self, cursor_position: CursorPosition) {
+    pub fn get_widget_id(
+        &self,
+        id: usize,
+        expected_type: WidgetType,
+    ) -> Option<&Box<dyn ProcessEvent>> {
+        for widget in &self.widgets {
+            if widget.get_id() == id && widget.get_type() == expected_type {
+                return Some(widget);
+            }
+        }
+        for widget in &self.new_widgets {
+            if widget.get_id() == id && widget.get_type() == expected_type {
+                return Some(widget);
+            }
+        }
+
+        None
+    }
+
+    pub fn get_widget_mut(&mut self, id: WidgetType) -> Option<&mut Box<dyn ProcessEvent>> {
+        for widget in &mut self.widgets {
+            if widget.get_type() == id {
+                return Some(widget);
+            }
+        }
+        for widget in &mut self.new_widgets {
+            if widget.get_type() == id {
+                return Some(widget);
+            }
+        }
+
+        None
+    }
+
+    pub fn get_widget_id_mut(
+        &mut self,
+        id: usize,
+        expected_type: WidgetType,
+    ) -> Option<&mut Box<dyn ProcessEvent>> {
+        for widget in &mut self.widgets {
+            if widget.get_id() == id && widget.get_type() == expected_type {
+                return Some(widget);
+            }
+        }
+        for widget in &mut self.new_widgets {
+            if widget.get_id() == id && widget.get_type() == expected_type {
+                return Some(widget);
+            }
+        }
+
+        None
+    }
+
+    pub fn remove_widget_id(&mut self, id: usize, expected_type: WidgetType) {
+        let mut idx = 0;
+        eprintln!("remove_widget_id: {}, type {}", id, expected_type);
+        for widget in &self.widgets {
+            eprintln!("widget: {}, type {}", widget.get_id(), widget.get_type());
+            if widget.get_id() == id && widget.get_type() == expected_type {
+                self.widgets.remove(idx);
+                return;
+            }
+            idx += 1;
+        }
+        idx = 0;
+        for widget in &self.new_widgets {
+            if widget.get_id() == id && widget.get_type() == expected_type {
+                self.new_widgets.remove(idx);
+                return;
+            }
+            idx += 1;
+        }
+    }
+
+    pub fn render(&mut self, cursor_position: CursorPosition, is_cursor_visible: bool) {
         queue!(std::io::stdout(), terminal::Clear(terminal::ClearType::All)).unwrap();
         for widget in &mut self.widgets {
             widget.render();
+        }
+        if is_cursor_visible {
+            queue!(stdout(), cursor::Show).unwrap();
+        } else {
+            queue!(stdout(), cursor::Hide).unwrap();
         }
         queue!(
             stdout(),
@@ -78,6 +168,7 @@ impl TextEditor {
 
         // Flush the terminal
         stdout().flush().unwrap();
+        self.old_cursor_position = cursor_position;
     }
 
     fn process_uncaught_event(
@@ -86,6 +177,13 @@ impl TextEditor {
         event: &Event,
     ) -> Option<CursorPosition> {
         match event {
+            Event::Resize(_x, _y) => {
+                for widget in &mut self.widgets {
+                    // widget.set_width(*x as usize);
+                    // widget.set_height(*y as usize);
+                    eprintln!("Resizing: {}, {}", widget.get_width(), widget.get_height());
+                }
+            }
             Event::Key(key) => {
                 if key.modifiers == KeyModifiers::CONTROL {
                     match key.code {
@@ -296,7 +394,8 @@ impl TextEditor {
     }
 
     pub fn event(&mut self, event: &Event) {
-        let mut cursor_position: (usize, usize) = (0, 0);
+        let mut cursor_position: (i32, i32) = (0, 0);
+        let mut is_cursor_visible = true;
         self.new_widgets.clear();
         while let Some(mut widget) = self.widgets.pop() {
             if widget.get_id() == self.focused_widget_id {
@@ -310,9 +409,10 @@ impl TextEditor {
                 } else {
                     if let Some(pos) = self.process_uncaught_event(&mut widget, event) {
                         cursor_position = pos;
-                        self.old_cursor_position = cursor_position;
+                    } else {
+                        cursor_position = self.old_cursor_position;
                     }
-                    cursor_position = self.old_cursor_position;
+                    is_cursor_visible = widget.is_cursor_visible();
                     self.new_widgets.push(widget);
                 }
             } else {
@@ -324,6 +424,9 @@ impl TextEditor {
         while let Some(widget) = self.new_widgets.pop() {
             self.widgets.push(widget);
         }
-        self.render(cursor_position);
+        // sort widgets by "get_z_idx"
+        self.widgets
+            .sort_by(|a, b| a.get_z_idx().cmp(&b.get_z_idx()));
+        self.render(cursor_position, is_cursor_visible);
     }
 }

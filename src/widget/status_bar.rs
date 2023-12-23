@@ -10,7 +10,7 @@ use ropey::Rope;
 use crate::editor::TextEditor;
 
 use super::widget::{
-    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, WidgetID,
+    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, WidgetType,
 };
 
 fn get_git_branch_name(repo_path: &Path) -> io::Result<String> {
@@ -28,7 +28,8 @@ static TOTAL_FILE_INFO_WIDTH: usize = 25;
 static TOTAL_POS_INFO_WIDTH: usize = 20;
 
 pub struct StatusBar {
-    pub id: WidgetID,
+    pub typ: WidgetType,
+    pub id: usize,
     /// the text
     pub buffer: Rope,
 
@@ -52,6 +53,8 @@ pub struct StatusBar {
 
     pub boder_style: BorderStyle,
     pub text_position: CursorPositionByte,
+
+    pub z_index: usize,
 }
 
 impl StatusBar {
@@ -95,7 +98,7 @@ impl StatusBar {
             buffer = ropey::Rope::from_str(&status_bar);
         }
         Box::new(Self {
-            id: WidgetID::StatusBar,
+            typ: WidgetType::StatusBar,
             buffer,
             x,
             y,
@@ -115,7 +118,8 @@ impl Default for StatusBar {
     fn default() -> Self {
         // Return a new Widget with default values here
         Self {
-            id: WidgetID::StatusBar,
+            typ: WidgetType::StatusBar,
+            id: 0,
             buffer: Rope::from_str(""),
             scroll_lines: 0,
             scroll_columns: 0,
@@ -129,6 +133,7 @@ impl Default for StatusBar {
             targetable: false,
             boder_style: BorderStyle::None,
             text_position: 0,
+            z_index: 0,
         }
     }
 }
@@ -173,8 +178,14 @@ impl ProcessEvent for StatusBar {
     fn get_targetable(&self) -> bool {
         self.targetable
     }
-    fn get_id(&self) -> WidgetID {
-        WidgetID::StatusBar
+    fn get_type(&self) -> WidgetType {
+        WidgetType::StatusBar
+    }
+    fn get_id(&self) -> usize {
+        self.id
+    }
+    fn get_z_idx(&self) -> usize {
+        self.z_index
     }
 
     fn set_border_style(&mut self, border_style: BorderStyle) {
@@ -216,8 +227,14 @@ impl ProcessEvent for StatusBar {
     fn set_targetable(&mut self, targetable: bool) {
         self.targetable = targetable;
     }
-    fn set_id(&mut self, id: WidgetID) {
+    fn set_type(&mut self, id: WidgetType) {
+        self.typ = id;
+    }
+    fn set_id(&mut self, id: usize) {
         self.id = id;
+    }
+    fn set_z_idx(&mut self, z_idx: usize) {
+        self.z_index = z_idx;
     }
 
     fn event(
@@ -258,7 +275,7 @@ impl ProcessEvent for StatusBar {
             if last_char != '*' && editor.written {
                 file_info.push('*');
             }
-            if editor.saved {
+            if !editor.written {
                 file_info = file_info.replace("*", "");
             }
 
@@ -267,11 +284,12 @@ impl ProcessEvent for StatusBar {
             status_bar.push_str(&" ".repeat(TOTAL_FILE_INFO_WIDTH - file_info.len()));
 
             let mut pos_info = String::new();
-            if let Some(panel) = editor.get_widget(WidgetID::Panel) {
+            if let Some(panel) = editor.get_widget(WidgetType::Panel) {
                 let pos = panel.get_cursor_view();
-                let x = pos.0 + 1 - panel.get_x() + panel.get_scroll_columns();
-                let y = pos.1 + 1 - panel.get_y() + panel.get_scroll_lines();
-                let percent = y * 100 / panel.get_buffer().len_lines();
+
+                let x = pos.0 + 1 - panel.get_x() as i32 + panel.get_scroll_columns() as i32;
+                let y = pos.1 + 1 - panel.get_y() as i32 + panel.get_scroll_lines() as i32;
+                let percent = y * 100 / (panel.get_buffer().len_lines() as i32);
                 pos_info.push_str(&format!("{}% ({},{})", percent, x, y));
                 status_bar.push_str(&pos_info);
             } else {

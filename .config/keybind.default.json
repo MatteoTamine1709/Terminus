@@ -1,0 +1,5 @@
+{
+  "ctrl+c": ":quit",
+  "ctrl+down": ":j10",
+  "ctrl+p": ":save __FILE__"
+}

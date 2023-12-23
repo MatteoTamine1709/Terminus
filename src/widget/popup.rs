@@ -1,3 +1,9 @@
+use std::{
+    fs,
+    io::{self, ErrorKind},
+    path::Path,
+};
+
 use crossterm::{event::Event, style::Color};
 use ropey::Rope;
 
@@ -7,7 +13,21 @@ use super::widget::{
     BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, WidgetType,
 };
 
-pub struct LineNumber {
+fn get_git_branch_name(repo_path: &Path) -> io::Result<String> {
+    let head_path = repo_path.join(".git/HEAD");
+    let content = fs::read_to_string(head_path)?;
+    content
+        .split_whitespace()
+        .last()
+        .and_then(|s| s.split('/').last())
+        .map(String::from)
+        .ok_or(io::Error::new(ErrorKind::Other, "Branch name not found"))
+}
+
+static TOTAL_FILE_INFO_WIDTH: usize = 25;
+static TOTAL_POS_INFO_WIDTH: usize = 20;
+
+pub struct Popup {
     pub typ: WidgetType,
     pub id: usize,
     /// the text
@@ -37,7 +57,7 @@ pub struct LineNumber {
     pub z_index: usize,
 }
 
-impl LineNumber {
+impl Popup {
     pub fn new(
         text: String,
         x: usize,
@@ -50,10 +70,9 @@ impl LineNumber {
         targetable: bool,
         boder_style: BorderStyle,
     ) -> Box<Self> {
-        let buffer = Rope::from_str(&text);
         Box::new(Self {
-            typ: WidgetType::LineNumber,
-            buffer,
+            typ: WidgetType::Popup,
+            buffer: Rope::from_str(&text),
             x,
             y,
             width,
@@ -68,11 +87,11 @@ impl LineNumber {
     }
 }
 
-impl Default for LineNumber {
+impl Default for Popup {
     fn default() -> Self {
         // Return a new Widget with default values here
         Self {
-            typ: WidgetType::LineNumber,
+            typ: WidgetType::Popup,
             id: 0,
             buffer: Rope::from_str(""),
             scroll_lines: 0,
@@ -92,7 +111,7 @@ impl Default for LineNumber {
     }
 }
 
-impl ProcessEvent for LineNumber {
+impl ProcessEvent for Popup {
     fn get_border_style(&self) -> BorderStyle {
         self.boder_style
     }
@@ -133,7 +152,7 @@ impl ProcessEvent for LineNumber {
         self.targetable
     }
     fn get_type(&self) -> WidgetType {
-        WidgetType::LineNumber
+        WidgetType::Popup
     }
     fn get_id(&self) -> usize {
         self.id
@@ -194,35 +213,8 @@ impl ProcessEvent for LineNumber {
     fn event(
         &mut self,
         editor: &mut TextEditor,
-        _event: &Event,
+        event: &Event,
     ) -> Option<(CursorPosition, ShouldExit)> {
-        {
-            if let Some(panel) = editor.get_widget(WidgetType::Panel) {
-                let is_relative = false;
-                let mut line_number = String::new();
-                for j in panel.get_scroll_lines()..(panel.get_scroll_lines() + panel.get_height()) {
-                    // Padded to the right
-                    if is_relative {
-                        let pos = panel.get_cursor_view();
-                        let v: i32 = (j as i32) - (pos.1 + panel.get_scroll_lines() as i32);
-                        let value: String = if v == 0 {
-                            (j + 1).to_string()
-                        } else {
-                            (v.abs()).to_string()
-                        };
-                        line_number.push_str(&" ".repeat(self.width - value.len()));
-                        line_number.push_str(&value);
-                        line_number.push('\n');
-                    } else {
-                        let value: String = (j + 1).to_string();
-                        line_number.push_str(&" ".repeat(self.width - value.len()));
-                        line_number.push_str(&value);
-                        line_number.push('\n');
-                    }
-                }
-                self.set_buffer(ropey::Rope::from_str(&line_number));
-            }
-        }
         None
     }
 }
