@@ -10,7 +10,8 @@ use ropey::Rope;
 use crate::editor::TextEditor;
 
 use super::widget::{
-    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, WidgetType,
+    BorderStyle, ColorText, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit,
+    WidgetType,
 };
 
 fn get_git_branch_name(repo_path: &Path) -> io::Result<String> {
@@ -32,6 +33,7 @@ pub struct Popup {
     pub id: usize,
     /// the text
     pub buffer: Rope,
+    pub colors: Vec<Vec<ColorText>>,
 
     pub x: usize,
     pub y: usize,
@@ -107,6 +109,7 @@ impl Default for Popup {
             boder_style: BorderStyle::None,
             text_position: 0,
             z_index: 0,
+            colors: Vec::new(),
         }
     }
 }
@@ -159,6 +162,16 @@ impl ProcessEvent for Popup {
     }
     fn get_z_idx(&self) -> usize {
         self.z_index
+    }
+
+    fn get_colors(&self) -> Vec<Vec<ColorText>> {
+        self.colors.clone()
+    }
+    fn get_colors_mut(&mut self) -> &mut Vec<Vec<ColorText>> {
+        &mut self.colors
+    }
+    fn set_colors(&mut self, colors: Vec<Vec<ColorText>>) {
+        self.colors = colors;
     }
 
     fn set_border_style(&mut self, border_style: BorderStyle) {

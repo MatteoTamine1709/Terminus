@@ -1,16 +1,24 @@
 warning: editor v0.1.0 (/home/mat/dev/rust/Terminus) ignoring invalid dependency `cargo-watch` which is missing a lib target
+warning: unused import: `RopeSlice`
+  --> src/widget/widget.rs:10:19
+   |
+10 | use ropey::{Rope, RopeSlice};
+   |                   ^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` on by default
+
 warning: unused variable: `editor`
-   --> src/widget/popup.rs:215:9
+   --> src/widget/popup.rs:228:9
     |
-215 |         editor: &mut TextEditor,
+228 |         editor: &mut TextEditor,
     |         ^^^^^^ help: if this is intentional, prefix it with an underscore: `_editor`
     |
     = note: `#[warn(unused_variables)]` on by default
 
 warning: unused variable: `event`
-   --> src/widget/popup.rs:216:9
+   --> src/widget/popup.rs:229:9
     |
-216 |         event: &Event,
+229 |         event: &Event,
     |         ^^^^^ help: if this is intentional, prefix it with an underscore: `_event`
 
 warning: method `get_widget_id` is never used
@@ -24,51 +32,709 @@ warning: method `get_widget_id` is never used
    |
    = note: `#[warn(dead_code)]` on by default
 
+warning: method `prev_position` is never used
+   --> src/widget/command_line.rs:153:8
+    |
+76  | impl CommandLine {
+    | ---------------- method in this implementation
+...
+153 |     fn prev_position(&mut self, editor: &mut TextEditor) {
+    |        ^^^^^^^^^^^^^
+
 warning: function `get_git_branch_name` is never used
-  --> src/widget/popup.rs:16:4
+  --> src/widget/popup.rs:17:4
    |
-16 | fn get_git_branch_name(repo_path: &Path) -> io::Result<String> {
+17 | fn get_git_branch_name(repo_path: &Path) -> io::Result<String> {
    |    ^^^^^^^^^^^^^^^^^^^
 
 warning: static `TOTAL_FILE_INFO_WIDTH` is never used
-  --> src/widget/popup.rs:27:8
+  --> src/widget/popup.rs:28:8
    |
-27 | static TOTAL_FILE_INFO_WIDTH: usize = 25;
+28 | static TOTAL_FILE_INFO_WIDTH: usize = 25;
    |        ^^^^^^^^^^^^^^^^^^^^^
 
 warning: static `TOTAL_POS_INFO_WIDTH` is never used
-  --> src/widget/popup.rs:28:8
+  --> src/widget/popup.rs:29:8
    |
-28 | static TOTAL_POS_INFO_WIDTH: usize = 20;
+29 | static TOTAL_POS_INFO_WIDTH: usize = 20;
    |        ^^^^^^^^^^^^^^^^^^^^
 
-warning: variant `None` is never constructed
-  --> src/widget/widget.rs:20:5
+warning: variant `Cursor` is never constructed
+  --> src/widget/widget.rs:21:5
    |
-19 | pub enum WidgetType {
-   |          ---------- variant in this enum
+19 | pub enum ColorTextTag {
+   |          ------------ variant in this enum
 20 |     None,
+21 |     Cursor,
+   |     ^^^^^^
+   |
+   = note: `ColorTextTag` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+
+warning: variant `None` is never constructed
+  --> src/widget/widget.rs:58:5
+   |
+57 | pub enum WidgetType {
+   |          ---------- variant in this enum
+58 |     None,
    |     ^^^^
    |
    = note: `WidgetType` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
 
 warning: variant `Solid` is never constructed
-  --> src/widget/widget.rs:47:5
+  --> src/widget/widget.rs:85:5
    |
-45 | pub enum BorderStyle {
+83 | pub enum BorderStyle {
    |          ----------- variant in this enum
-46 |     None,
-47 |     Solid,
+84 |     None,
+85 |     Solid,
    |     ^^^^^
    |
    = note: `BorderStyle` has a derived impl for the trait `Clone`, but this is intentionally ignored during dead code analysis
 
-warning: `editor` (bin "editor") generated 8 warnings (run `cargo fix --bin "editor"` to apply 2 suggestions)
-    Finished dev [unoptimized + debuginfo] target(s) in 0.09s
+warning: `editor` (bin "editor") generated 11 warnings (run `cargo fix --bin "editor"` to apply 3 suggestions)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.07s
      Running `target/debug/editor src/main.rs`
 add_widget: 0, type StatusBar
 add_widget: 1, type LineNumber
 add_widget: 2, type CommandLine
 add_widget: 3, type Panel
-add_widget: 4, type Popup
-popup: Some((Popup, 4))
+y: 4
+color1: ColorText { x: 0, fg: Blue, bg: Reset, len: 1, z_index: 10, tag: Selection }
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color1: ColorText { x: 26, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Blue, bg: Reset, len: 1, z_index: 0, tag: Selection }
+color2: ColorText { x: 1, fg: White, bg: Reset, len: 26, z_index: 0, tag: Find }
+color2: ColorText { x: 26, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 27, fg: White, bg: Reset, len: 77, z_index: 0, tag: None }
+line_to_display_split: ["u", "se std::{env, path::PathB", "u", "f};                                                                          "]
+y: 6
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 1, fg: White, bg: Reset, len: 103, z_index: 0, tag: None }
+line_to_display_split: ["u", "se crossterm::{                                                                                        "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 1, fg: White, bg: Reset, len: 103, z_index: 0, tag: None }
+line_to_display_split: ["u", "se editor::TextEditor;                                                                                 "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color1: ColorText { x: 19, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 1, fg: White, bg: Reset, len: 19, z_index: 0, tag: Find }
+color2: ColorText { x: 19, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 20, fg: White, bg: Reset, len: 84, z_index: 0, tag: None }
+line_to_display_split: ["u", "se terminal::clean", "u", "p_terminal;                                                                         "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 1, fg: White, bg: Reset, len: 103, z_index: 0, tag: None }
+line_to_display_split: ["u", "se widget::widget::BorderStyle;                                                                        "]
+y: 15
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 1, fg: White, bg: Reset, len: 103, z_index: 0, tag: None }
+line_to_display_split: ["u", "se crate::widget::{                                                                                    "]
+y: 16
+color1: ColorText { x: 37, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color1: ColorText { x: 49, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color1: ColorText { x: 74, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color1: ColorText { x: 86, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: White, bg: Reset, len: 37, z_index: 0, tag: Find }
+color2: ColorText { x: 37, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 38, fg: White, bg: Reset, len: 49, z_index: 0, tag: Find }
+color2: ColorText { x: 49, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 50, fg: White, bg: Reset, len: 74, z_index: 0, tag: Find }
+color2: ColorText { x: 74, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 75, fg: White, bg: Reset, len: 86, z_index: 0, tag: Find }
+color2: ColorText { x: 86, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 87, fg: White, bg: Reset, len: 17, z_index: 0, tag: None }
+line_to_display_split: ["    command_line::CommandLine, line_n", "u", "mber::LineN", "u", "mber, panel::Panel, stat", "u", "s_bar::Stat", "u", "sBar,            "]
+y: 20
+color1: ColorText { x: 1, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color1: ColorText { x: 55, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: White, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 1, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 2, fg: White, bg: Reset, len: 55, z_index: 0, tag: Find }
+color2: ColorText { x: 55, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 56, fg: White, bg: Reset, len: 48, z_index: 0, tag: None }
+line_to_display_split: ["p", "u", "b fn main_loop(file_content: String, save_path: PathB", "u", "f, new_load: bool) {                            "]
+y: 21
+color1: ColorText { x: 33, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: White, bg: Reset, len: 33, z_index: 0, tag: Find }
+color2: ColorText { x: 33, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 34, fg: White, bg: Reset, len: 70, z_index: 0, tag: None }
+line_to_display_split: ["    let (width, height) = size().", "u", "nwrap();                                                              "]
+y: 23
+color1: ColorText { x: 17, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color1: ColorText { x: 31, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: White, bg: Reset, len: 17, z_index: 0, tag: Find }
+color2: ColorText { x: 17, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 18, fg: White, bg: Reset, len: 31, z_index: 0, tag: Find }
+color2: ColorText { x: 31, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 32, fg: White, bg: Reset, len: 72, z_index: 0, tag: None }
+line_to_display_split: ["    terminal::set", "u", "p_terminal(tr", "u", "e);                                                                     "]
+y: 24
+color1: ColorText { x: 9, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: White, bg: Reset, len: 9, z_index: 0, tag: Find }
+color2: ColorText { x: 9, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 10, fg: White, bg: Reset, len: 94, z_index: 0, tag: None }
+line_to_display_split: ["    let m", "u", "t editor = TextEditor::new(&save_path);                                                       "]
+y: 26
+color1: ColorText { x: 14, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: White, bg: Reset, len: 14, z_index: 0, tag: Find }
+color2: ColorText { x: 14, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 15, fg: White, bg: Reset, len: 89, z_index: 0, tag: None }
+line_to_display_split: ["    let line_n", "u", "mber_width = 8;                                                                          "]
+y: 27
+color1: ColorText { x: 9, fg: Red, bg: Reset, len: 1, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: White, bg: Reset, len: 9, z_index: 0, tag: Find }
+color2: ColorText { x: 9, fg: Red, bg: Reset, len: 1, z_index: 0, tag: Find }
+color2: ColorText { x: 10, fg: White, bg: Reset, len: 94, z_index: 0, tag: None }
+line_to_display_split: ["    let m", "u", "t main = Panel::new(                                                                          "]
+y: 4
+color1: ColorText { x: 0, fg: Blue, bg: Reset, len: 2, z_index: 10, tag: Selection }
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 2, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Blue, bg: Reset, len: 2, z_index: 0, tag: Selection }
+color2: ColorText { x: 2, fg: White, bg: Reset, len: 102, z_index: 0, tag: None }
+line_to_display_split: ["us", "e std::{env, path::PathBuf};                                                                          "]
+y: 6
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 2, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 2, z_index: 0, tag: Find }
+color2: ColorText { x: 2, fg: White, bg: Reset, len: 102, z_index: 0, tag: None }
+line_to_display_split: ["us", "e crossterm::{                                                                                        "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 2, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 2, z_index: 0, tag: Find }
+color2: ColorText { x: 2, fg: White, bg: Reset, len: 102, z_index: 0, tag: None }
+line_to_display_split: ["us", "e editor::TextEditor;                                                                                 "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 2, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 2, z_index: 0, tag: Find }
+color2: ColorText { x: 2, fg: White, bg: Reset, len: 102, z_index: 0, tag: None }
+line_to_display_split: ["us", "e terminal::cleanup_terminal;                                                                         "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 2, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 2, z_index: 0, tag: Find }
+color2: ColorText { x: 2, fg: White, bg: Reset, len: 102, z_index: 0, tag: None }
+line_to_display_split: ["us", "e widget::widget::BorderStyle;                                                                        "]
+y: 15
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 2, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 2, z_index: 0, tag: Find }
+color2: ColorText { x: 2, fg: White, bg: Reset, len: 102, z_index: 0, tag: None }
+line_to_display_split: ["us", "e crate::widget::{                                                                                    "]
+y: 16
+color1: ColorText { x: 74, fg: Red, bg: Reset, len: 2, z_index: 5, tag: Find }
+color1: ColorText { x: 86, fg: Red, bg: Reset, len: 2, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: White, bg: Reset, len: 74, z_index: 0, tag: Find }
+color2: ColorText { x: 74, fg: Red, bg: Reset, len: 2, z_index: 0, tag: Find }
+color2: ColorText { x: 76, fg: White, bg: Reset, len: 86, z_index: 0, tag: Find }
+color2: ColorText { x: 86, fg: Red, bg: Reset, len: 2, z_index: 0, tag: Find }
+color2: ColorText { x: 88, fg: White, bg: Reset, len: 16, z_index: 0, tag: None }
+line_to_display_split: ["    command_line::CommandLine, line_number::LineNumber, panel::Panel, stat", "us", "_bar::Stat", "us", "Bar,            "]
+y: 4
+color1: ColorText { x: 0, fg: Blue, bg: Reset, len: 3, z_index: 10, tag: Selection }
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Blue, bg: Reset, len: 3, z_index: 0, tag: Selection }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 6
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crossterm::{                                                                                        "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;                                                                                 "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " terminal::cleanup_terminal;                                                                         "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 15
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 6
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crossterm::{                                                                                        "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;                                                                                 "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " terminal::cleanup_terminal;                                                                         "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 15
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 6
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crossterm::{                                                                                        "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;                                                                                 "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " terminal::cleanup_terminal;                                                                         "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 15
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 6
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crossterm::{                                                                                        "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;                                                                                 "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " terminal::cleanup_terminal;                                                                         "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 15
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;                                                                                 "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " terminal::cleanup_terminal;                                                                         "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 14
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;                                                                                 "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " terminal::cleanup_terminal;                                                                         "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 14
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;                                                                                 "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " terminal::cleanup_terminal;                                                                         "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 14
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;                                                                                 "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " terminal::cleanup_terminal;                                                                         "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 14
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;                                                                                 "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " terminal::cleanup_terminal;                                                                         "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 14
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;                                                                                 "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " terminal::cleanup_terminal;                                                                         "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 14
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;                                                                                 "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " terminal::cleanup_terminal;                                                                         "]
+y: 12
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 14
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;use terminal::cleanup_terminal;                                                  "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;use terminal::cleanup_terminal;                                                  "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;use terminal::cleanup_terminal;                                                  "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;use terminal::cleanup_terminal;                                                  "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;use terminal::cleanup_terminal;                                                  "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;use terminal::cleanup_terminal;                                                  "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;use terminal::cleanup_terminal;                                                  "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;use terminal::cleanup_terminal;                                                  "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;use terminal::cleanup_terminal;                                                  "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 13
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " crate::widget::{                                                                                    "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;use terminal::cleanup_terminal;                                                  "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]
+y: 4
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " std::{env, path::PathBuf};                                                                          "]
+y: 10
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " editor::TextEditor;use terminal::cleanup_terminal;                                                  "]
+y: 11
+color1: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 5, tag: Find }
+color2: ColorText { x: 0, fg: Red, bg: Reset, len: 3, z_index: 0, tag: Find }
+color2: ColorText { x: 3, fg: White, bg: Reset, len: 101, z_index: 0, tag: None }
+line_to_display_split: ["use", " widget::widget::BorderStyle;                                                                        "]

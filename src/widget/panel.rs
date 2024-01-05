@@ -4,13 +4,16 @@ use ropey::Rope;
 
 use crate::{editor::TextEditor, widget::widget::WidgetType};
 
-use super::widget::{BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit};
+use super::widget::{
+    BorderStyle, ColorText, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit,
+};
 
 pub struct Panel {
     pub typ: WidgetType,
     pub id: usize,
     /// the text
     pub buffer: Rope,
+    pub colors: Vec<Vec<ColorText>>,
 
     pub x: usize,
     pub y: usize,
@@ -87,6 +90,7 @@ impl Default for Panel {
             boder_style: BorderStyle::None,
             text_position: 0,
             z_index: 0,
+            colors: vec![],
         }
     }
 }
@@ -139,6 +143,16 @@ impl ProcessEvent for Panel {
     }
     fn get_z_idx(&self) -> usize {
         self.z_index
+    }
+
+    fn get_colors(&self) -> Vec<Vec<ColorText>> {
+        self.colors.clone()
+    }
+    fn get_colors_mut(&mut self) -> &mut Vec<Vec<ColorText>> {
+        &mut self.colors
+    }
+    fn set_colors(&mut self, colors: Vec<Vec<ColorText>>) {
+        self.colors = colors;
     }
 
     fn set_border_style(&mut self, border_style: BorderStyle) {
@@ -225,7 +239,6 @@ impl ProcessEvent for Panel {
                             self.buffer.insert_char(self.text_position, '\n');
                             self.text_position += 1;
                             editor.written = true;
-                            return Some((self.update_cursor_position_and_view(), false));
                         }
                         crossterm::event::KeyCode::Backspace => {
                             if self.text_position > 0 {

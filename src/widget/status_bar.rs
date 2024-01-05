@@ -10,7 +10,8 @@ use ropey::Rope;
 use crate::editor::TextEditor;
 
 use super::widget::{
-    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, WidgetType,
+    BorderStyle, ColorText, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit,
+    WidgetType,
 };
 
 fn get_git_branch_name(repo_path: &Path) -> io::Result<String> {
@@ -32,6 +33,7 @@ pub struct StatusBar {
     pub id: usize,
     /// the text
     pub buffer: Rope,
+    pub colors: Vec<Vec<ColorText>>,
 
     pub x: usize,
     pub y: usize,
@@ -134,6 +136,7 @@ impl Default for StatusBar {
             boder_style: BorderStyle::None,
             text_position: 0,
             z_index: 0,
+            colors: Vec::new(),
         }
     }
 }
@@ -188,6 +191,16 @@ impl ProcessEvent for StatusBar {
         self.z_index
     }
 
+    fn get_colors(&self) -> Vec<Vec<ColorText>> {
+        self.colors.clone()
+    }
+    fn get_colors_mut(&mut self) -> &mut Vec<Vec<ColorText>> {
+        &mut self.colors
+    }
+    fn set_colors(&mut self, colors: Vec<Vec<ColorText>>) {
+        self.colors = colors;
+    }
+
     fn set_border_style(&mut self, border_style: BorderStyle) {
         self.boder_style = border_style;
     }
@@ -236,7 +249,6 @@ impl ProcessEvent for StatusBar {
     fn set_z_idx(&mut self, z_idx: usize) {
         self.z_index = z_idx;
     }
-
     fn event(
         &mut self,
         editor: &mut TextEditor,

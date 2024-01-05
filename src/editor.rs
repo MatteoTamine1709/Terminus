@@ -424,9 +424,10 @@ impl TextEditor {
         while let Some(widget) = self.new_widgets.pop() {
             self.widgets.push(widget);
         }
-        // sort widgets by "get_z_idx"
+        // sort widgets by "get_z_idx" and by id
         self.widgets
             .sort_by(|a, b| a.get_z_idx().cmp(&b.get_z_idx()));
+        self.widgets.sort_by(|a, b| a.get_id().cmp(&b.get_id()));
         self.render(cursor_position, is_cursor_visible);
     }
 }

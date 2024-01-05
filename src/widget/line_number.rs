@@ -4,7 +4,8 @@ use ropey::Rope;
 use crate::editor::TextEditor;
 
 use super::widget::{
-    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, WidgetType,
+    BorderStyle, ColorText, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit,
+    WidgetType,
 };
 
 pub struct LineNumber {
@@ -12,6 +13,7 @@ pub struct LineNumber {
     pub id: usize,
     /// the text
     pub buffer: Rope,
+    pub colors: Vec<Vec<ColorText>>,
 
     pub x: usize,
     pub y: usize,
@@ -88,6 +90,7 @@ impl Default for LineNumber {
             boder_style: BorderStyle::None,
             text_position: 0,
             z_index: 0,
+            colors: Vec::new(),
         }
     }
 }
@@ -140,6 +143,16 @@ impl ProcessEvent for LineNumber {
     }
     fn get_z_idx(&self) -> usize {
         self.z_index
+    }
+
+    fn get_colors(&self) -> Vec<Vec<ColorText>> {
+        self.colors.clone()
+    }
+    fn get_colors_mut(&mut self) -> &mut Vec<Vec<ColorText>> {
+        &mut self.colors
+    }
+    fn set_colors(&mut self, colors: Vec<Vec<ColorText>>) {
+        self.colors = colors;
     }
 
     fn set_border_style(&mut self, border_style: BorderStyle) {
@@ -200,7 +213,13 @@ impl ProcessEvent for LineNumber {
             if let Some(panel) = editor.get_widget(WidgetType::Panel) {
                 let is_relative = false;
                 let mut line_number = String::new();
-                for j in panel.get_scroll_lines()..(panel.get_scroll_lines() + panel.get_height()) {
+                let max_lines = panel.get_buffer().len_lines();
+                let max_v = if max_lines < panel.get_height() {
+                    max_lines
+                } else {
+                    panel.get_height()
+                };
+                for j in panel.get_scroll_lines()..(panel.get_scroll_lines() + max_v) {
                     // Padded to the right
                     if is_relative {
                         let pos = panel.get_cursor_view();

@@ -37,6 +37,7 @@ pub fn main_loop(file_content: String, save_path: PathBuf, new_load: bool) {
         true,
         BorderStyle::None,
     );
+    main.set_z_idx(1);
 
     let status_bar: Box<StatusBar> = StatusBar::new(
         save_path.to_str().unwrap().to_string(),

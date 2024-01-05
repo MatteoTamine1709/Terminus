@@ -6,7 +6,8 @@ use ropey::Rope;
 use crate::{editor::TextEditor, widget::popup::Popup};
 
 use super::widget::{
-    BorderStyle, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit, WidgetType,
+    BorderStyle, ColorText, ColorTextTag, CursorPosition, CursorPositionByte, ProcessEvent,
+    ShouldExit, WidgetType,
 };
 
 trait CommandLineCommands {
@@ -35,6 +36,7 @@ pub struct CommandLine {
     pub id: usize,
     /// the text
     pub buffer: Rope,
+    pub colors: Vec<Vec<ColorText>>,
 
     pub x: usize,
     pub y: usize,
@@ -119,17 +121,7 @@ impl CommandLine {
         })
     }
 
-    fn execute_command(&mut self, editor: &mut TextEditor, sens: i32, event: &Event) {
-        if self.positions.len() > 0
-            && self.old_buffer.cmp(&self.buffer) == std::cmp::Ordering::Equal
-        {
-            if sens > 0 {
-                self.next_position(editor);
-            } else {
-                self.prev_position(editor);
-            }
-            return;
-        }
+    fn execute_command(&mut self, editor: &mut TextEditor, event: &Event) {
         let buffer = self.buffer.to_string();
         let args = buffer
             .split_whitespace()
@@ -143,7 +135,7 @@ impl CommandLine {
         self.old_buffer = self.buffer.clone();
     }
 
-    fn next_position(&mut self, editor: &mut TextEditor) {
+    fn next_position(&mut self, editor: &mut TextEditor) -> CursorPositionByte {
         if self.positions.len() > 0 {
             self.position_idx += 1;
             if self.position_idx >= self.positions.len() {
@@ -152,8 +144,10 @@ impl CommandLine {
             if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
                 panel.set_text_position(self.positions[self.position_idx]);
                 panel.update_cursor_position_and_view();
+                return self.positions[self.position_idx];
             }
         }
+        0
     }
 
     fn prev_position(&mut self, editor: &mut TextEditor) {
@@ -174,6 +168,7 @@ impl CommandLine {
         // Delete the old popup
         if let Some((typ, id)) = self.list_popup {
             editor.remove_widget_id(id, typ);
+            self.list_popup = None;
         }
         let mut text = String::new();
         let mut max_len = 0;
@@ -246,38 +241,91 @@ impl CommandLineCommands for CommandLine {
         args: Vec<String>,
         _event: Event,
     ) {
-        command_line.positions.clear();
-        command_line.position_idx = 0;
         if args.len() < 2 {
             return;
         }
+        let search_term = &args[1];
+        if command_line.positions.len() > 0
+            && command_line.old_buffer.cmp(&command_line.buffer) == std::cmp::Ordering::Equal
+        {
+            let new_position = command_line.next_position(editor);
+            if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
+                let y = panel.get_buffer().byte_to_line(new_position);
+                let x = panel.get_buffer().byte_to_char(new_position)
+                    - panel.get_buffer().line_to_char(y);
+                panel.remove_color(&|c: &ColorText| c.tag == ColorTextTag::Selection);
+
+                panel.push_color(
+                    y,
+                    ColorText {
+                        x,
+                        fg: Color::Blue,
+                        bg: Color::Reset,
+                        len: search_term.len(),
+                        z_index: 10,
+                        tag: ColorTextTag::Selection,
+                    },
+                );
+            }
+            return;
+        }
+        command_line.positions.clear();
+        command_line.position_idx = 0;
         if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
-            let search_term = &args[1];
             let mut found_pos = panel.get_text_position();
             let mut found = false;
-            let mut idx = 0;
-            let chunks = panel.get_buffer().chunks().collect::<Vec<_>>();
-            for i in 0..chunks.len() {
-                let found_positions = chunks[i]
-                    .to_lowercase()
-                    .match_indices(search_term.to_lowercase().as_str())
-                    .map(|(pos, _)| pos)
-                    .collect::<Vec<_>>();
-                for pos in found_positions {
-                    if !found && idx + pos >= found_pos {
-                        found = true;
-                        found_pos = idx + pos;
-                        command_line.position_idx = command_line.positions.len();
-                    }
-                    command_line.positions.push(idx + pos);
+            let found_positions = panel
+                .get_buffer()
+                .chars()
+                .collect::<String>()
+                .to_lowercase()
+                .match_indices(search_term.to_lowercase().as_str())
+                .map(|(pos, _)| pos)
+                .collect::<Vec<_>>();
+
+            panel.remove_color(&|c: &ColorText| c.tag == ColorTextTag::Find);
+            panel.remove_color(&|c: &ColorText| c.tag == ColorTextTag::Selection);
+
+            for pos in found_positions {
+                let y = panel.get_buffer().byte_to_line(pos);
+                let x = panel.get_buffer().byte_to_char(pos) - panel.get_buffer().line_to_char(y);
+                panel.push_color(
+                    y,
+                    ColorText {
+                        x,
+                        fg: Color::Red,
+                        bg: Color::Reset,
+                        len: search_term.len(),
+                        z_index: 5,
+                        tag: ColorTextTag::Find,
+                    },
+                );
+                if !found && pos >= found_pos {
+                    found = true;
+                    found_pos = pos;
+                    command_line.position_idx = command_line.positions.len();
                 }
-                idx += chunks[i].len();
+                command_line.positions.push(pos);
             }
 
             if !found && command_line.positions.len() > 0 {
                 found_pos = command_line.positions[0];
                 command_line.position_idx = 0;
             }
+            let y = panel.get_buffer().byte_to_line(found_pos);
+            let x = panel.get_buffer().byte_to_char(found_pos) - panel.get_buffer().line_to_char(y);
+
+            panel.push_color(
+                y,
+                ColorText {
+                    x,
+                    fg: Color::Blue,
+                    bg: Color::Reset,
+                    len: search_term.len(),
+                    z_index: 10,
+                    tag: ColorTextTag::Selection,
+                },
+            );
             panel.set_text_position(found_pos);
             panel.update_cursor_position_and_view();
         }
@@ -344,6 +392,7 @@ impl Default for CommandLine {
             position_idx: 0,
             list_popup: None,
             z_idx: 0,
+            colors: Vec::new(),
         }
     }
 }
@@ -396,6 +445,16 @@ impl ProcessEvent for CommandLine {
     }
     fn get_z_idx(&self) -> usize {
         self.z_idx
+    }
+
+    fn get_colors(&self) -> Vec<Vec<ColorText>> {
+        self.colors.clone()
+    }
+    fn get_colors_mut(&mut self) -> &mut Vec<Vec<ColorText>> {
+        &mut self.colors
+    }
+    fn set_colors(&mut self, colors: Vec<Vec<ColorText>>) {
+        self.colors = colors;
     }
 
     fn set_border_style(&mut self, border_style: BorderStyle) {
@@ -460,6 +519,7 @@ impl ProcessEvent for CommandLine {
                         crossterm::event::KeyCode::Esc => {
                             if let Some((typ, id)) = self.list_popup {
                                 editor.remove_widget_id(id, typ);
+                                self.list_popup = None;
                                 return Some((self.update_cursor_position_and_view(), false));
                             }
                             self.focused = false;
@@ -469,13 +529,16 @@ impl ProcessEvent for CommandLine {
                             }
                             if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
                                 panel.set_focused(true);
+                                panel.remove_color(&|c: &ColorText| {
+                                    c.tag == ColorTextTag::Selection
+                                });
                                 return Some((panel.update_cursor_position_and_view(), false));
                             }
                         }
                         crossterm::event::KeyCode::Char(c) => {
                             self.buffer.insert_char(self.text_position, c);
                             self.text_position += 1;
-                            self.execute_command(editor, 1, event);
+                            self.execute_command(editor, event);
                             self.update_popup(editor);
                             return Some((self.update_cursor_position_and_view(), false));
                         }
@@ -485,12 +548,12 @@ impl ProcessEvent for CommandLine {
                                     .remove(self.text_position - 1..self.text_position);
                                 self.text_position -= 1;
                             }
-                            self.execute_command(editor, 1, event);
+                            self.execute_command(editor, event);
                             self.update_popup(editor);
                             return Some((self.update_cursor_position_and_view(), false));
                         }
                         crossterm::event::KeyCode::Enter => {
-                            self.execute_command(editor, 1, event);
+                            self.execute_command(editor, event);
                         }
                         _ => {}
                     }
@@ -498,7 +561,8 @@ impl ProcessEvent for CommandLine {
                 if key_event.modifiers == crossterm::event::KeyModifiers::CONTROL {
                     match key_event.code {
                         crossterm::event::KeyCode::Char('j') => {
-                            self.execute_command(editor, -1, event);
+                            // TODO: repace this
+                            self.execute_command(editor, event);
                         }
                         _ => {}
                     }

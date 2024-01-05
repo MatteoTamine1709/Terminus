@@ -4,7 +4,7 @@ use crossterm::{
     cursor::{self},
     event::Event,
     queue,
-    style::{self, Color, Stylize},
+    style::{self, Color, ContentStyle, StyledContent, Stylize},
 };
 
 use ropey::{Rope, RopeSlice};
@@ -14,6 +14,44 @@ use super::super::editor::TextEditor;
 pub type ShouldExit = bool;
 pub type CursorPosition = (i32, i32);
 pub type CursorPositionByte = usize;
+
+#[derive(PartialEq, Clone, Copy, Debug)]
+pub enum ColorTextTag {
+    None,
+    Cursor,
+    Selection,
+    Find,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct ColorText {
+    pub x: usize,
+    pub fg: Color,
+    pub bg: Color,
+    pub len: usize,
+    pub z_index: i16,
+    pub tag: ColorTextTag,
+}
+
+impl ColorText {
+    pub fn new(
+        x: usize,
+        fg: Color,
+        bg: Color,
+        len: usize,
+        z_index: i16,
+        tag: ColorTextTag,
+    ) -> Self {
+        Self {
+            x,
+            fg,
+            bg,
+            len,
+            z_index,
+            tag,
+        }
+    }
+}
 
 #[derive(PartialEq, Clone, Copy, Debug)]
 pub enum WidgetType {
@@ -73,6 +111,28 @@ pub trait ProcessEvent {
     fn get_type(&self) -> WidgetType;
     fn get_id(&self) -> usize;
     fn get_z_idx(&self) -> usize;
+
+    fn get_colors(&self) -> Vec<Vec<ColorText>>;
+    fn get_colors_mut(&mut self) -> &mut Vec<Vec<ColorText>>;
+    fn push_color(&mut self, y: usize, color: ColorText) {
+        let colors = self.get_colors_mut();
+        if colors.len() <= y {
+            colors.resize(y + 1, Vec::<ColorText>::new());
+        }
+        colors[y].push(color);
+    }
+    fn clear_colors(&mut self) {
+        self.get_colors_mut().clear();
+    }
+    fn remove_line_colors(&mut self, y: usize) {
+        self.get_colors_mut().remove(y);
+    }
+    fn remove_color(&mut self, predicate: &dyn Fn(&ColorText) -> bool) {
+        for line in self.get_colors_mut() {
+            line.retain(|c| !predicate(c));
+        }
+    }
+    fn set_colors(&mut self, colors: Vec<Vec<ColorText>>);
 
     fn set_border_style(&mut self, border_style: BorderStyle);
     fn set_x(&mut self, x: usize);
@@ -182,13 +242,18 @@ pub trait ProcessEvent {
         let x = self.get_x() + offset;
         let mut y = self.get_y() + offset;
 
+        let fg = self.get_default_fg();
+        let bg = self.get_default_bg();
+        let mut colors = self.get_colors();
+        for color_line in &mut colors {
+            color_line.sort_by_key(|c| -c.z_index);
+            color_line.sort_by_key(|c| c.x);
+        }
+
         let buffer = self.get_buffer();
-        let lines: Vec<RopeSlice> = buffer
-            .lines()
-            .skip(self.get_scroll_lines())
-            .take(height)
-            .collect();
-        for line in lines.iter() {
+        let num_lines = buffer.lines().len();
+        let lines = buffer.lines().skip(self.get_scroll_lines()).take(height);
+        for line in lines {
             let mut line_to_display: String = line
                 .chars()
                 .skip(self.get_scroll_columns())
@@ -201,19 +266,117 @@ pub trait ProcessEvent {
                 line_to_display.push_str(&" ".repeat(width - line_to_display.len() - x));
             }
 
-            queue!(stdout, cursor::MoveTo(x as u16, y as u16)).unwrap();
-            queue!(
-                stdout,
-                style::PrintStyledContent(
-                    line_to_display
-                        .with(self.get_default_fg())
-                        .on(self.get_default_bg())
-                )
-            )
-            .unwrap();
+            let color_line = colors.get(y + self.get_scroll_lines() - offset);
+            if color_line.unwrap_or(&Vec::<ColorText>::new()).len() > 0 {
+                eprintln!("y: {}", y);
+                let color_line = color_line.unwrap();
+                // color.x
+                // color.len
+                // color.fg
+                // color.bg
+                // color.z_index
+                // Rebuild the line with the colors
+                // First, skip colors scroll columns x
+                let mut intermediate_color_line = Vec::<ColorText>::new();
+                let color_line_contained = color_line
+                    .iter()
+                    .skip_while(|c| c.x < self.get_scroll_columns())
+                    .take_while(|c| c.x < self.get_scroll_columns() + line_to_display.len());
+                let mut x_color = 0;
+                for color in color_line_contained {
+                    eprintln!("color1: {:?}", color);
+                    if color.x == 0 && x_color == 0 {
+                        intermediate_color_line.push(ColorText::new(
+                            x_color, color.fg, color.bg, color.len, 0, color.tag,
+                        ));
+                        x_color = color.x + color.len;
+                    } else if color.x > x_color {
+                        intermediate_color_line
+                            .push(ColorText::new(x_color, fg, bg, color.x, 0, color.tag));
+                        x_color = color.x;
+                        intermediate_color_line.push(ColorText::new(
+                            x_color, color.fg, color.bg, color.len, 0, color.tag,
+                        ));
+                        x_color = color.x + color.len;
+                    } else if color.x < x_color && color.x + color.len > x_color {
+                        let len = color.x + color.len - x_color;
+                        intermediate_color_line.push(ColorText::new(
+                            x_color,
+                            color.fg,
+                            color.bg,
+                            len,
+                            color.z_index,
+                            color.tag,
+                        ));
+                        x_color = len;
+                    }
+                }
+                if x_color < line_to_display.len() {
+                    intermediate_color_line.push(ColorText::new(
+                        x_color,
+                        fg,
+                        bg,
+                        line_to_display.len() - x_color,
+                        0,
+                        ColorTextTag::None,
+                    ));
+                }
+                // Split line_to_display based on intermediate_color_line x and len
+                let mut line_to_display_split = Vec::<String>::new();
+                let mut line_to_display = line_to_display;
+                let mut x_color = 0;
+                for color in &intermediate_color_line {
+                    eprintln!("color2: {:?}", color);
+                    if color.x > x_color {
+                        line_to_display_split
+                            .push(line_to_display[..color.x - x_color].to_string());
+                        line_to_display = line_to_display[color.x - x_color..].to_string();
+                        x_color = color.x;
+                    } else if color.x < x_color && color.x + color.len > x_color {
+                        line_to_display_split
+                            .push(line_to_display[..color.x + color.len - x_color].to_string());
+                        line_to_display =
+                            line_to_display[color.x + color.len - x_color..].to_string();
+                        x_color = color.x;
+                    }
+                }
+                line_to_display_split.push(line_to_display);
+                eprintln!("line_to_display_split: {:?}", line_to_display_split);
+                // Print the line
+                let mut x_color = x;
+                for (i, line_to_display_slice) in line_to_display_split.iter().enumerate() {
+                    queue!(stdout, cursor::MoveTo(x_color as u16, y as u16)).unwrap();
+                    let style: ContentStyle = ContentStyle {
+                        foreground_color: Some(intermediate_color_line[i].fg),
+                        background_color: Some(intermediate_color_line[i].bg),
+                        ..ContentStyle::default()
+                    };
+
+                    let text = StyledContent::new(style, line_to_display_slice);
+
+                    queue!(stdout, style::PrintStyledContent(text)).unwrap();
+                    x_color += line_to_display_slice.len();
+                }
+            } else {
+                queue!(stdout, cursor::MoveTo(x as u16, y as u16)).unwrap();
+                let style: ContentStyle = ContentStyle {
+                    foreground_color: Some(self.get_default_fg()),
+                    background_color: Some(self.get_default_bg()),
+                    ..ContentStyle::default()
+                };
+
+                let text = StyledContent::new(style, line_to_display);
+
+                queue!(stdout, style::PrintStyledContent(text)).unwrap();
+            }
             y += 1;
         }
-        for i in 0..(height - lines.len()) {
+        let line_rendered = if num_lines - self.get_scroll_lines() > height {
+            height
+        } else {
+            num_lines - self.get_scroll_lines()
+        };
+        for i in 0..(height - line_rendered) {
             queue!(stdout, cursor::MoveTo(x as u16, (y + i) as u16)).unwrap();
             queue!(
                 stdout,
@@ -305,165 +468,5 @@ pub trait ProcessEvent {
             return false;
         }
         true
-    }
-}
-pub struct Widget {
-    pub typ: WidgetType,
-    pub id: usize,
-    /// the text
-    pub buffer: Rope,
-
-    pub x: usize,
-    pub y: usize,
-    pub width: usize,
-    pub height: usize,
-
-    /// the color
-    pub default_fg: Color,
-    pub default_bg: Color,
-
-    pub focused: bool,
-    pub targetable: bool,
-
-    /// scolled lines
-    pub scroll_lines: usize,
-
-    /// scrolled columns
-    pub scroll_columns: usize,
-
-    pub boder_style: BorderStyle,
-    pub text_position: CursorPositionByte,
-
-    pub z_idx: usize,
-}
-
-impl Widget {
-    pub fn _new() -> Box<Self> {
-        Box::new(Self {
-            typ: WidgetType::None,
-            id: 0,
-            buffer: Rope::from_str(""),
-            x: 0,
-            y: 0,
-            width: 0,
-            height: 0,
-            default_fg: Color::Reset,
-            default_bg: Color::Reset,
-            focused: false,
-            targetable: false,
-            scroll_lines: 0,
-            scroll_columns: 0,
-            boder_style: BorderStyle::None,
-            text_position: 0,
-            z_idx: 0,
-        })
-    }
-}
-
-impl ProcessEvent for Widget {
-    fn event(
-        &mut self,
-        _editor: &mut TextEditor,
-        _event: &Event,
-    ) -> Option<(CursorPosition, ShouldExit)> {
-        Some((self.update_cursor_position_and_view(), true))
-    }
-
-    fn get_border_style(&self) -> BorderStyle {
-        self.boder_style
-    }
-    fn get_buffer(&self) -> &Rope {
-        &self.buffer
-    }
-    fn get_height(&self) -> usize {
-        self.height
-    }
-    fn get_width(&self) -> usize {
-        self.width
-    }
-    fn get_x(&self) -> usize {
-        self.x
-    }
-    fn get_y(&self) -> usize {
-        self.y
-    }
-    fn get_scroll_lines(&self) -> usize {
-        self.scroll_lines
-    }
-    fn get_scroll_columns(&self) -> usize {
-        self.scroll_columns
-    }
-    fn get_default_fg(&self) -> Color {
-        self.default_fg
-    }
-    fn get_default_bg(&self) -> Color {
-        self.default_bg
-    }
-    fn get_text_position(&self) -> CursorPositionByte {
-        self.text_position
-    }
-    fn get_focused(&self) -> bool {
-        self.focused
-    }
-    fn get_targetable(&self) -> bool {
-        self.targetable
-    }
-    fn get_type(&self) -> WidgetType {
-        self.typ
-    }
-    fn get_id(&self) -> usize {
-        self.id
-    }
-    fn get_z_idx(&self) -> usize {
-        self.z_idx
-    }
-
-    fn set_border_style(&mut self, border_style: BorderStyle) {
-        self.boder_style = border_style;
-    }
-    fn set_buffer(&mut self, buffer: Rope) {
-        self.buffer = buffer;
-    }
-    fn set_height(&mut self, height: usize) {
-        self.height = height;
-    }
-    fn set_width(&mut self, width: usize) {
-        self.width = width;
-    }
-    fn set_x(&mut self, x: usize) {
-        self.x = x;
-    }
-    fn set_y(&mut self, y: usize) {
-        self.y = y;
-    }
-    fn set_scroll_lines(&mut self, scroll_lines: usize) {
-        self.scroll_lines = scroll_lines;
-    }
-    fn set_scroll_columns(&mut self, scroll_columns: usize) {
-        self.scroll_columns = scroll_columns;
-    }
-    fn set_default_fg(&mut self, default_fg: Color) {
-        self.default_fg = default_fg;
-    }
-    fn set_default_bg(&mut self, default_bg: Color) {
-        self.default_bg = default_bg;
-    }
-    fn set_text_position(&mut self, text_position: CursorPositionByte) {
-        self.text_position = text_position;
-    }
-    fn set_focused(&mut self, focused: bool) {
-        self.focused = focused;
-    }
-    fn set_targetable(&mut self, targetable: bool) {
-        self.targetable = targetable;
-    }
-    fn set_type(&mut self, id: WidgetType) {
-        self.typ = id;
-    }
-    fn set_id(&mut self, id: usize) {
-        self.id = id;
-    }
-    fn set_z_idx(&mut self, z_idx: usize) {
-        self.z_idx = z_idx;
     }
 }
