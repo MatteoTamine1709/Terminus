@@ -239,6 +239,7 @@ impl ProcessEvent for Panel {
                             self.buffer.insert_char(self.text_position, '\n');
                             self.text_position += 1;
                             editor.written = true;
+                            return Some((self.update_cursor_position_and_view(), false));
                         }
                         crossterm::event::KeyCode::Backspace => {
                             if self.text_position > 0 {

@@ -8,6 +8,12 @@ use crossterm::{
 };
 
 use ropey::{Rope, RopeSlice};
+use syntect::{
+    easy::HighlightLines,
+    highlighting::{Style, ThemeSet},
+    parsing::SyntaxSet,
+    util::LinesWithEndings,
+};
 
 use super::super::editor::TextEditor;
 
@@ -244,6 +250,13 @@ pub trait ProcessEvent {
 
         let fg = self.get_default_fg();
         let bg = self.get_default_bg();
+
+        let ps = SyntaxSet::load_defaults_newlines();
+        let ts = ThemeSet::load_defaults();
+
+        let syntax = ps.find_syntax_by_extension("rs").unwrap();
+        let mut h = HighlightLines::new(syntax, &ts.themes["base16-ocean.dark"]);
+
         let mut colors = self.get_colors();
         for color_line in &mut colors {
             color_line.sort_by_key(|c| -c.z_index);
@@ -262,8 +275,8 @@ pub trait ProcessEvent {
             if line_to_display.ends_with('\n') {
                 line_to_display.pop();
             }
-            if line_to_display.len() + x < width {
-                line_to_display.push_str(&" ".repeat(width - line_to_display.len() - x));
+            if line_to_display.len() < width {
+                line_to_display.push_str(&" ".repeat(width - line_to_display.len()));
             }
 
             let color_line = colors.get(y + self.get_scroll_lines() - offset);
@@ -358,16 +371,31 @@ pub trait ProcessEvent {
                     x_color += line_to_display_slice.len();
                 }
             } else {
+                let line = &(line_to_display + "\n");
+                let ranges: Vec<(Style, &str)> = h.highlight_line(line, &ps).unwrap();
                 queue!(stdout, cursor::MoveTo(x as u16, y as u16)).unwrap();
-                let style: ContentStyle = ContentStyle {
-                    foreground_color: Some(self.get_default_fg()),
-                    background_color: Some(self.get_default_bg()),
-                    ..ContentStyle::default()
-                };
-
-                let text = StyledContent::new(style, line_to_display);
-
-                queue!(stdout, style::PrintStyledContent(text)).unwrap();
+                for (style, mut text) in ranges {
+                    let style: ContentStyle = ContentStyle {
+                        foreground_color: Some(Color::Rgb {
+                            r: style.foreground.r,
+                            g: style.foreground.g,
+                            b: style.foreground.b,
+                        }),
+                        background_color: Some(Color::Rgb {
+                            r: style.background.r,
+                            g: style.background.g,
+                            b: style.background.b,
+                        }),
+                        ..ContentStyle::default()
+                    };
+                    eprintln!("text: {:?}", text);
+                    if text.ends_with('\n') {
+                        // Remove the last character
+                        text = &text[..text.len() - 1];
+                    }
+                    let text = StyledContent::new(style, &text);
+                    queue!(stdout, style::PrintStyledContent(text)).unwrap();
+                }
             }
             y += 1;
         }
@@ -430,6 +458,7 @@ pub trait ProcessEvent {
         let x = self.get_text_position() - self.get_buffer().line_to_byte(y);
         let scroll_lines = self.get_scroll_lines();
         let scroll_columns = self.get_scroll_columns();
+        // if '\n' we need to go to the next line
 
         // if y < scroll_lines {
         //     scroll_lines = y;

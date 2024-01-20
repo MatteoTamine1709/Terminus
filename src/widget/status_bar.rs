@@ -76,9 +76,13 @@ impl StatusBar {
         {
             let current = buffer.to_string();
             let parts = current.split(' ').collect::<Vec<&str>>();
-            let file_info = parts[0].to_string();
+            let mut file_info = parts[0].to_string();
 
             let mut status_bar = String::new();
+            if file_info.len() >= TOTAL_FILE_INFO_WIDTH {
+                file_info =
+                    String::from(&file_info[(file_info.len() - TOTAL_FILE_INFO_WIDTH + 1)..]);
+            }
             status_bar.push_str(&file_info);
             status_bar.push_str(&" ".repeat(TOTAL_FILE_INFO_WIDTH - file_info.len()));
 
@@ -292,6 +296,9 @@ impl ProcessEvent for StatusBar {
             }
 
             let mut status_bar = String::new();
+            if file_info.len() >= TOTAL_FILE_INFO_WIDTH {
+                file_info = String::from(&file_info[(file_info.len() - TOTAL_FILE_INFO_WIDTH)..]);
+            }
             status_bar.push_str(&file_info);
             status_bar.push_str(&" ".repeat(TOTAL_FILE_INFO_WIDTH - file_info.len()));
 

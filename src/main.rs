@@ -2,11 +2,11 @@ mod editor;
 mod terminal;
 mod widget;
 
-use std::{env, path::PathBuf};
+use std::{env, io::stdout, path::PathBuf};
 
 use crossterm::{
     event::{poll, read},
-    style::Color,
+    style::{Color, Print, PrintStyledContent},
     terminal::size,
 };
 use editor::TextEditor;
@@ -17,6 +17,12 @@ use crate::widget::{
     command_line::CommandLine, line_number::LineNumber, panel::Panel, status_bar::StatusBar,
     widget::ProcessEvent,
 }; // test
+use crossterm::execute;
+
+use syntect::easy::HighlightLines;
+use syntect::highlighting::{Style, ThemeSet};
+use syntect::parsing::SyntaxSet;
+use syntect::util::{as_24_bit_terminal_escaped, LinesWithEndings};
 
 pub fn main_loop(file_content: String, save_path: PathBuf, new_load: bool) {
     let (width, height) = size().unwrap();
@@ -25,6 +31,8 @@ pub fn main_loop(file_content: String, save_path: PathBuf, new_load: bool) {
     let mut editor = TextEditor::new(&save_path);
     editor.written = new_load;
     let line_number_width = 8;
+    eprintln!("line_number_width: {}", line_number_width);
+    eprintln!("width: {}, height: {}", width, height);
     let mut main = Panel::new(
         file_content.clone(),
         line_number_width,
