@@ -251,7 +251,7 @@ pub trait ProcessEvent {
         let fg = self.get_default_fg();
         let bg = self.get_default_bg();
 
-        let ps = SyntaxSet::load_defaults_newlines();
+        let ps = SyntaxSet::load_defaults_nonewlines();
         let ts = ThemeSet::load_defaults();
 
         let syntax = ps.find_syntax_by_extension("rs").unwrap();
@@ -280,32 +280,21 @@ pub trait ProcessEvent {
             }
 
             let color_line = colors.get(y + self.get_scroll_lines() - offset);
+            let mut intermediate_color_line = Vec::<ColorText>::new();
             if color_line.unwrap_or(&Vec::<ColorText>::new()).len() > 0 {
-                eprintln!("y: {}", y);
                 let color_line = color_line.unwrap();
-                // color.x
-                // color.len
-                // color.fg
-                // color.bg
-                // color.z_index
-                // Rebuild the line with the colors
-                // First, skip colors scroll columns x
-                let mut intermediate_color_line = Vec::<ColorText>::new();
                 let color_line_contained = color_line
                     .iter()
                     .skip_while(|c| c.x < self.get_scroll_columns())
                     .take_while(|c| c.x < self.get_scroll_columns() + line_to_display.len());
                 let mut x_color = 0;
                 for color in color_line_contained {
-                    eprintln!("color1: {:?}", color);
                     if color.x == 0 && x_color == 0 {
                         intermediate_color_line.push(ColorText::new(
                             x_color, color.fg, color.bg, color.len, 0, color.tag,
                         ));
                         x_color = color.x + color.len;
-                    } else if color.x > x_color {
-                        intermediate_color_line
-                            .push(ColorText::new(x_color, fg, bg, color.x, 0, color.tag));
+                    } else if color.x >= x_color {
                         x_color = color.x;
                         intermediate_color_line.push(ColorText::new(
                             x_color, color.fg, color.bg, color.len, 0, color.tag,
@@ -324,58 +313,18 @@ pub trait ProcessEvent {
                         x_color = len;
                     }
                 }
-                if x_color < line_to_display.len() {
-                    intermediate_color_line.push(ColorText::new(
-                        x_color,
-                        fg,
-                        bg,
-                        line_to_display.len() - x_color,
-                        0,
-                        ColorTextTag::None,
-                    ));
-                }
-                // Split line_to_display based on intermediate_color_line x and len
-                let mut line_to_display_split = Vec::<String>::new();
-                let mut line_to_display = line_to_display;
-                let mut x_color = 0;
-                for color in &intermediate_color_line {
-                    eprintln!("color2: {:?}", color);
-                    if color.x > x_color {
-                        line_to_display_split
-                            .push(line_to_display[..color.x - x_color].to_string());
-                        line_to_display = line_to_display[color.x - x_color..].to_string();
-                        x_color = color.x;
-                    } else if color.x < x_color && color.x + color.len > x_color {
-                        line_to_display_split
-                            .push(line_to_display[..color.x + color.len - x_color].to_string());
-                        line_to_display =
-                            line_to_display[color.x + color.len - x_color..].to_string();
-                        x_color = color.x;
-                    }
-                }
-                line_to_display_split.push(line_to_display);
-                eprintln!("line_to_display_split: {:?}", line_to_display_split);
-                // Print the line
-                let mut x_color = x;
-                for (i, line_to_display_slice) in line_to_display_split.iter().enumerate() {
-                    queue!(stdout, cursor::MoveTo(x_color as u16, y as u16)).unwrap();
-                    let style: ContentStyle = ContentStyle {
-                        foreground_color: Some(intermediate_color_line[i].fg),
-                        background_color: Some(intermediate_color_line[i].bg),
-                        ..ContentStyle::default()
-                    };
-
-                    let text = StyledContent::new(style, line_to_display_slice);
-
-                    queue!(stdout, style::PrintStyledContent(text)).unwrap();
-                    x_color += line_to_display_slice.len();
-                }
-            } else {
-                let line = &(line_to_display + "\n");
-                let ranges: Vec<(Style, &str)> = h.highlight_line(line, &ps).unwrap();
-                queue!(stdout, cursor::MoveTo(x as u16, y as u16)).unwrap();
-                for (style, mut text) in ranges {
-                    let style: ContentStyle = ContentStyle {
+            }
+            let line = &line_to_display;
+            let ranges: Vec<(Style, &str)> = h.highlight_line(line, &ps).unwrap();
+            queue!(stdout, cursor::MoveTo(x as u16, y as u16)).unwrap();
+            let mut total_read = 0;
+            let mut next_color_idx = 0;
+            for (style, mut text) in ranges {
+                while next_color_idx < intermediate_color_line.len()
+                    && intermediate_color_line[next_color_idx].x >= total_read
+                    && intermediate_color_line[next_color_idx].x < total_read + text.len()
+                {
+                    let def_style: ContentStyle = ContentStyle {
                         foreground_color: Some(Color::Rgb {
                             r: style.foreground.r,
                             g: style.foreground.g,
@@ -388,15 +337,65 @@ pub trait ProcessEvent {
                         }),
                         ..ContentStyle::default()
                     };
-                    eprintln!("text: {:?}", text);
-                    if text.ends_with('\n') {
-                        // Remove the last character
-                        text = &text[..text.len() - 1];
+
+                    let style: ContentStyle = ContentStyle {
+                        foreground_color: Some(intermediate_color_line[next_color_idx].fg),
+                        background_color: Some(intermediate_color_line[next_color_idx].bg),
+                        ..ContentStyle::default()
+                    };
+
+                    // eprintln!("text: {:?}", text);
+                    let end_of_first_part = intermediate_color_line[next_color_idx].x - total_read;
+                    let text_to_print = StyledContent::new(def_style, &text[..end_of_first_part]);
+                    queue!(stdout, style::PrintStyledContent(text_to_print)).unwrap();
+
+                    let mut end_of_second_part = intermediate_color_line[next_color_idx].x
+                        - total_read
+                        + intermediate_color_line[next_color_idx].len;
+                    if end_of_second_part > text.len() {
+                        end_of_second_part = text.len();
                     }
-                    let text = StyledContent::new(style, &text);
-                    queue!(stdout, style::PrintStyledContent(text)).unwrap();
+                    let text_to_print =
+                        StyledContent::new(style, &text[end_of_first_part..end_of_second_part]);
+                    queue!(stdout, style::PrintStyledContent(text_to_print)).unwrap();
+
+                    text = &text[end_of_second_part..];
+                    // let text_to_print = StyledContent::new(def_style, &text[end_of_second_part..]);
+                    // queue!(stdout, style::PrintStyledContent(text_to_print)).unwrap();
+
+                    total_read += end_of_second_part;
+                    if y == 0 {
+                        eprintln!(
+                        "total_read: {}, next_color_idx: {}, intermediate_color_line.len(): {:?}, end_of_first_part: {}, end_of_second_part: {}, text.len(): {}",
+                        total_read, next_color_idx, intermediate_color_line[next_color_idx], end_of_first_part, end_of_second_part, text.len()
+                    );
+                    }
+                    intermediate_color_line[next_color_idx].len -=
+                        end_of_second_part - end_of_first_part;
+                    intermediate_color_line[next_color_idx].x +=
+                        end_of_second_part - end_of_first_part;
+                    if intermediate_color_line[next_color_idx].len == 0 {
+                        next_color_idx += 1;
+                    }
                 }
+                let style: ContentStyle = ContentStyle {
+                    foreground_color: Some(Color::Rgb {
+                        r: style.foreground.r,
+                        g: style.foreground.g,
+                        b: style.foreground.b,
+                    }),
+                    background_color: Some(Color::Rgb {
+                        r: style.background.r,
+                        g: style.background.g,
+                        b: style.background.b,
+                    }),
+                    ..ContentStyle::default()
+                };
+                let text_to_print = StyledContent::new(style, &text);
+                queue!(stdout, style::PrintStyledContent(text_to_print)).unwrap();
+                total_read += text.len();
             }
+            // }
             y += 1;
         }
         let line_rendered = if num_lines - self.get_scroll_lines() > height {

@@ -1,3 +1,4 @@
+// 'aaaa' -> 'aaaa'
 mod editor;
 mod terminal;
 mod widget;
@@ -25,6 +26,7 @@ use syntect::parsing::SyntaxSet;
 use syntect::util::{as_24_bit_terminal_escaped, LinesWithEndings};
 
 pub fn main_loop(file_content: String, save_path: PathBuf, new_load: bool) {
+    let aaaa = "aaaa";
     let (width, height) = size().unwrap();
     println!("width: {}, height: {}", width, height);
     terminal::setup_terminal(true);

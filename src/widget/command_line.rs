@@ -1,6 +1,7 @@
 use std::{collections::HashMap, fs};
 
 use crossterm::{event::Event, style::Color};
+use regex::Regex;
 use ropey::Rope;
 
 use crate::{editor::TextEditor, widget::popup::Popup};
@@ -65,7 +66,7 @@ pub struct CommandLine {
         String,
         fn(command_line: &mut Self, editor: &mut TextEditor, args: Vec<String>, event: Event),
     >,
-    positions: Vec<CursorPositionByte>,
+    positions: Vec<(CursorPositionByte, usize)>,
     position_idx: usize,
 
     list_popup: Option<(WidgetType, usize)>,
@@ -121,12 +122,62 @@ impl CommandLine {
         })
     }
 
-    fn execute_command(&mut self, editor: &mut TextEditor, event: &Event) {
+    fn parse_command_line(&self) -> Vec<String> {
         let buffer = self.buffer.to_string();
-        let args = buffer
-            .split_whitespace()
-            .map(|s| s.to_string())
-            .collect::<Vec<_>>();
+        let mut args = Vec::new();
+        let mut current_arg = String::new();
+        let mut in_single_quote = false;
+        let mut in_double_quote = false;
+        let mut in_regex = false;
+        let mut chars = buffer.chars().peekable();
+
+        while let Some(c) = chars.next() {
+            match c {
+                // Handle space outside of quotes
+                ' ' if !in_single_quote && !in_double_quote && !in_regex => {
+                    if !current_arg.is_empty() {
+                        args.push(current_arg.clone());
+                        current_arg.clear();
+                    }
+                }
+                // Handle slash
+                '/' if !in_single_quote && !in_double_quote => {
+                    in_regex = !in_regex;
+                    current_arg.push(c);
+                }
+                // Handle end of regex
+                '\'' if !in_double_quote && !in_regex => {
+                    in_single_quote = !in_single_quote;
+                    current_arg.push(c);
+                }
+                // Handle double quote
+                '"' if !in_single_quote && !in_regex => {
+                    in_double_quote = !in_double_quote;
+                    current_arg.push(c);
+                }
+                // Handle escape sequence
+                '\\' if in_double_quote && chars.peek() == Some(&'"') => {
+                    current_arg.push(chars.next().unwrap());
+                }
+                '\\' if in_single_quote && chars.peek() == Some(&'\'') => {
+                    current_arg.push(chars.next().unwrap());
+                }
+                // Any other character
+                _ => current_arg.push(c),
+            }
+        }
+
+        if !current_arg.is_empty() {
+            args.push(current_arg);
+        }
+
+        args
+    }
+
+    fn execute_command(&mut self, editor: &mut TextEditor, event: &Event) {
+        // Do this
+        let args: Vec<String> = self.parse_command_line();
+        eprintln!("args: {:?}", args);
         if args.len() > 0 {
             if let Some(command) = self.commands.get(&args[0]) {
                 command(self, editor, args, event.clone())
@@ -135,19 +186,19 @@ impl CommandLine {
         self.old_buffer = self.buffer.clone();
     }
 
-    fn next_position(&mut self, editor: &mut TextEditor) -> CursorPositionByte {
+    fn next_position(&mut self, editor: &mut TextEditor) -> (CursorPositionByte, usize) {
         if self.positions.len() > 0 {
             self.position_idx += 1;
             if self.position_idx >= self.positions.len() {
                 self.position_idx = 0;
             }
             if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
-                panel.set_text_position(self.positions[self.position_idx]);
+                panel.set_text_position(self.positions[self.position_idx].0);
                 panel.update_cursor_position_and_view();
                 return self.positions[self.position_idx];
             }
         }
-        0
+        (0, 0)
     }
 
     fn prev_position(&mut self, editor: &mut TextEditor) {
@@ -158,7 +209,7 @@ impl CommandLine {
                 self.position_idx -= 1;
             }
             if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
-                panel.set_text_position(self.positions[self.position_idx]);
+                panel.set_text_position(self.positions[self.position_idx].0);
                 panel.update_cursor_position_and_view();
             }
         }
@@ -242,13 +293,20 @@ impl CommandLineCommands for CommandLine {
         _event: Event,
     ) {
         if args.len() < 2 {
+            command_line.positions.clear();
+            command_line.position_idx = 0;
+            if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
+                panel.remove_color(&|c: &ColorText| {
+                    c.tag == ColorTextTag::Selection || c.tag == ColorTextTag::Find
+                });
+            }
             return;
         }
         let search_term = &args[1];
         if command_line.positions.len() > 0
             && command_line.old_buffer.cmp(&command_line.buffer) == std::cmp::Ordering::Equal
         {
-            let new_position = command_line.next_position(editor);
+            let (new_position, new_len) = command_line.next_position(editor);
             if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
                 let y = panel.get_buffer().byte_to_line(new_position);
                 let x = panel.get_buffer().byte_to_char(new_position)
@@ -261,7 +319,7 @@ impl CommandLineCommands for CommandLine {
                         x,
                         fg: Color::Blue,
                         bg: Color::Reset,
-                        len: search_term.len(),
+                        len: new_len,
                         z_index: 10,
                         tag: ColorTextTag::Selection,
                     },
@@ -274,60 +332,108 @@ impl CommandLineCommands for CommandLine {
         if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
             let mut found_pos = panel.get_text_position();
             let mut found = false;
-            let found_positions = panel
-                .get_buffer()
-                .chars()
-                .collect::<String>()
-                .to_lowercase()
-                .match_indices(search_term.to_lowercase().as_str())
-                .map(|(pos, _)| pos)
-                .collect::<Vec<_>>();
+            let mut found_len = 0;
+            // searchterm === mod
+            // searchterm === "mod"
+            // searchterm === 'mod'
+            // searchterm === /mod/
+            // let pattern
 
             panel.remove_color(&|c: &ColorText| c.tag == ColorTextTag::Find);
             panel.remove_color(&|c: &ColorText| c.tag == ColorTextTag::Selection);
 
-            for pos in found_positions {
-                let y = panel.get_buffer().byte_to_line(pos);
-                let x = panel.get_buffer().byte_to_char(pos) - panel.get_buffer().line_to_char(y);
+            if search_term.starts_with('/') && search_term.ends_with('/') && search_term.len() > 2 {
+                let pattern = &search_term[1..search_term.len() - 1];
+                let regex = Regex::new(pattern);
+                if let Ok(regex) = regex {
+                    regex
+                        .find_iter(&panel.get_buffer().to_string())
+                        .for_each(|m| {
+                            let pos = m.start();
+                            let y = panel.get_buffer().byte_to_line(pos);
+                            let x = panel.get_buffer().byte_to_char(pos)
+                                - panel.get_buffer().line_to_char(y);
+                            panel.push_color(
+                                y,
+                                ColorText {
+                                    x,
+                                    fg: Color::Red,
+                                    bg: Color::Reset,
+                                    len: m.len(),
+                                    z_index: 5,
+                                    tag: ColorTextTag::Find,
+                                },
+                            );
+                            if !found && pos >= found_pos {
+                                found = true;
+                                found_pos = pos;
+                                found_len = m.len();
+                                command_line.position_idx = command_line.positions.len();
+                            }
+                            command_line.positions.push((pos, m.len()));
+                            // found_positions.push(m.start());
+                        });
+                }
+            } else {
+                let search_term = if search_term.starts_with('"') && search_term.ends_with('"') {
+                    &search_term[1..search_term.len() - 1]
+                } else if search_term.starts_with('\'') && search_term.ends_with('\'') {
+                    &search_term[1..search_term.len() - 1]
+                } else {
+                    search_term
+                };
+                panel
+                    .get_buffer()
+                    .to_string()
+                    .match_indices(search_term)
+                    .for_each(|(pos, _)| {
+                        let y = panel.get_buffer().byte_to_line(pos);
+                        let x = panel.get_buffer().byte_to_char(pos)
+                            - panel.get_buffer().line_to_char(y);
+                        panel.push_color(
+                            y,
+                            ColorText {
+                                x,
+                                fg: Color::Red,
+                                bg: Color::Reset,
+                                len: search_term.len(),
+                                z_index: 5,
+                                tag: ColorTextTag::Find,
+                            },
+                        );
+                        if !found && pos >= found_pos {
+                            found = true;
+                            found_pos = pos;
+                            found_len = search_term.len();
+                            command_line.position_idx = command_line.positions.len();
+                        }
+                        command_line.positions.push((pos, search_term.len()));
+                    });
+            }
+            if !found && command_line.positions.len() > 0 {
+                found_pos = command_line.positions[0].0;
+                found_len = command_line.positions[0].1;
+                command_line.position_idx = 0;
+            }
+
+            if found {
+                let y = panel.get_buffer().byte_to_line(found_pos);
+                let x =
+                    panel.get_buffer().byte_to_char(found_pos) - panel.get_buffer().line_to_char(y);
                 panel.push_color(
                     y,
                     ColorText {
                         x,
-                        fg: Color::Red,
+                        fg: Color::Blue,
                         bg: Color::Reset,
-                        len: search_term.len(),
-                        z_index: 5,
-                        tag: ColorTextTag::Find,
+                        len: found_len,
+                        z_index: 10,
+                        tag: ColorTextTag::Selection,
                     },
                 );
-                if !found && pos >= found_pos {
-                    found = true;
-                    found_pos = pos;
-                    command_line.position_idx = command_line.positions.len();
-                }
-                command_line.positions.push(pos);
+                panel.set_text_position(found_pos);
+                panel.update_cursor_position_and_view();
             }
-
-            if !found && command_line.positions.len() > 0 {
-                found_pos = command_line.positions[0];
-                command_line.position_idx = 0;
-            }
-            let y = panel.get_buffer().byte_to_line(found_pos);
-            let x = panel.get_buffer().byte_to_char(found_pos) - panel.get_buffer().line_to_char(y);
-
-            panel.push_color(
-                y,
-                ColorText {
-                    x,
-                    fg: Color::Blue,
-                    bg: Color::Reset,
-                    len: search_term.len(),
-                    z_index: 10,
-                    tag: ColorTextTag::Selection,
-                },
-            );
-            panel.set_text_position(found_pos);
-            panel.update_cursor_position_and_view();
         }
     }
 
@@ -513,6 +619,18 @@ impl ProcessEvent for CommandLine {
     ) -> Option<(CursorPosition, ShouldExit)> {
         if self.focused {
             if let Event::Key(key_event) = event {
+                if key_event.modifiers == crossterm::event::KeyModifiers::SHIFT {
+                    match key_event.code {
+                        crossterm::event::KeyCode::Char(c) => {
+                            self.buffer.insert_char(self.text_position, c);
+                            self.text_position += 1;
+                            self.execute_command(editor, event);
+                            self.update_popup(editor);
+                            return Some((self.update_cursor_position_and_view(), false));
+                        }
+                        _ => {}
+                    }
+                }
                 if key_event.modifiers == crossterm::event::KeyModifiers::NONE {
                     match key_event.code {
                         crossterm::event::KeyCode::Tab => self.create_popup(editor),

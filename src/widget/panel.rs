@@ -212,6 +212,15 @@ impl ProcessEvent for Panel {
         if self.focused {
             if let Event::Key(key_event) = event {
                 match key_event.modifiers {
+                    crossterm::event::KeyModifiers::SHIFT => match key_event.code {
+                        crossterm::event::KeyCode::Char(c) => {
+                            self.buffer.insert_char(self.text_position, c);
+                            self.text_position += 1;
+                            editor.written = true;
+                            return Some((self.update_cursor_position_and_view(), false));
+                        }
+                        _ => {}
+                    },
                     crossterm::event::KeyModifiers::NONE => match key_event.code {
                         crossterm::event::KeyCode::Tab => {
                             // let targetable_widgets: usize = editor
