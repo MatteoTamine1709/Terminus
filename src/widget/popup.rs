@@ -228,6 +228,30 @@ impl ProcessEvent for Popup {
         editor: &mut TextEditor,
         event: &Event,
     ) -> Option<(CursorPosition, ShouldExit)> {
+        if self.focused {
+            match event {
+                Event::Key(key) => match key.code {
+                    crossterm::event::KeyCode::Esc => {
+                        let panel = editor.get_widget_mut(WidgetType::CommandLine).unwrap();
+                        let pos = panel.update_cursor_position_and_view();
+                        panel.set_focused(true);
+                        editor.focused_widget_id = panel.get_id();
+                        return Some((pos, true));
+                    }
+                    crossterm::event::KeyCode::Tab => {
+                        eprintln!("popup tab");
+                        let panel = editor.get_widget_mut(WidgetType::CommandLine).unwrap();
+                        let pos = panel.update_cursor_position_and_view();
+                        panel.set_focused(true);
+                        self.focused = false;
+                        editor.focused_widget_id = panel.get_id();
+                        return Some((pos, false));
+                    }
+                    _ => {}
+                },
+                _ => {}
+            }
+        }
         None
     }
 }

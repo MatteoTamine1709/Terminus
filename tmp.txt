@@ -1,6 +1,257 @@
 line_number_width: 8
-width: 120, height: 30
+width: 156, height: 40
+y: 0, x: 0, scroll_lines: 0, scroll_columns: 0
 add_widget: 0, type StatusBar
+y: 0, x: 0, scroll_lines: 0, scroll_columns: 0
 add_widget: 1, type LineNumber
+y: 0, x: 0, scroll_lines: 0, scroll_columns: 0
 add_widget: 2, type CommandLine
+y: 0, x: 0, scroll_lines: 0, scroll_columns: 0
 add_widget: 3, type Panel
+y: 0, x: 0, scroll_lines: 0, scroll_columns: 0
+Insert
+y: 0, x: 1, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 2, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 3, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 4, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 5, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 6, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 7, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }]
+y: 0, x: 4, scroll_lines: 0, scroll_columns: 0
+Insert
+y: 0, x: 5, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 6, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 7, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 8, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 9, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " this", done: true, started: true }]
+y: 0, x: 4, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }]
+y: 0, x: 0, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack []
+undo
+Undo stack []
+Insert
+y: 0, x: 1, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 2, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 3, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 4, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 5, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 6, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 7, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 8, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 9, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " ia", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " a", done: true, started: true }]
+y: 0, x: 7, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " ia", done: true, started: true }]
+y: 0, x: 4, scroll_lines: 0, scroll_columns: 0
+Insert
+y: 0, x: 5, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 6, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 7, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 8, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 9, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " a", done: true, started: true }]
+y: 0, x: 7, scroll_lines: 0, scroll_columns: 0
+Insert
+y: 0, x: 8, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 9, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 10, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 11, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 12, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 13, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 14, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 15, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 16, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 17, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " wher", done: true, started: true }]
+y: 0, x: 12, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 11, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 10, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 9, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 12, text: "tse", done: true, started: true }]
+y: 0, x: 12, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 11, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 10, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 9, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 8, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 7, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 12, text: "tset ", done: true, started: true }]
+y: 0, x: 12, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 11, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 10, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 9, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 8, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 7, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 6, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 5, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 4, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 3, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 12, text: "tset si s", done: true, started: true }]
+y: 0, x: 12, scroll_lines: 0, scroll_columns: 0
+Insert
+y: 0, x: 13, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 14, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 15, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 16, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 17, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 18, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 19, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 20, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 21, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 22, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 23, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 24, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " where", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 19, text: " I", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 21, text: " don", done: true, started: true }]
+y: 0, x: 20, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " where", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 19, text: " I", done: true, started: true }]
+y: 0, x: 18, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " where", done: true, started: true }]
+y: 0, x: 12, scroll_lines: 0, scroll_columns: 0
+Insert
+y: 0, x: 13, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 14, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 15, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 16, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 17, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 16, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 15, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 16, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 17, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 0, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 1, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 2, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 3, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 4, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 5, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 6, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 7, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 8, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 9, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 10, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 11, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 12, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 13, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 14, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 15, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 16, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 16, scroll_lines: 0, scroll_columns: 0
+y: 0, x: 17, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 0, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 1, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 2, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 3, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 4, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 5, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 4, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 3, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 4, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 5, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 6, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 7, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 8, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 7, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 8, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 9, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 8, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 7, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 8, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 9, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 10, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 11, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 12, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 13, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 14, scroll_lines: 0, scroll_columns: 0
+y: 1, x: 13, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: " (i", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 29, text: " ==", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 32, text: " 0)", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\nprint", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 23, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 22, text: "ntln(", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "(", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "!(", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "!", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 27, text: "yeay'\"", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 32, text: "\"", done: true, started: true }]
+y: 1, x: 14, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: " (i", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 29, text: " ==", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 32, text: " 0)", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\nprint", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 23, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 22, text: "ntln(", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "(", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "!(", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "!", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 27, text: "yeay'\"", done: true, started: true }]
+y: 1, x: 8, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: " (i", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 29, text: " ==", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 32, text: " 0)", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\nprint", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 23, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 22, text: "ntln(", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "(", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "!(", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "!", done: true, started: true }]
+y: 1, x: 8, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: " (i", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 29, text: " ==", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 32, text: " 0)", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\nprint", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 23, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 22, text: "ntln(", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "(", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "!(", done: true, started: true }]
+y: 1, x: 7, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: " (i", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 29, text: " ==", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 32, text: " 0)", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\nprint", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 23, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 22, text: "ntln(", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: "(", done: true, started: true }]
+y: 1, x: 8, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: " (i", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 29, text: " ==", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 32, text: " 0)", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\nprint", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 23, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 22, text: "ntln(", done: true, started: true }]
+y: 1, x: 3, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: " (i", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 29, text: " ==", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 32, text: " 0)", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\nprint", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 23, text: "tn", done: true, started: true }]
+y: 1, x: 5, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: " (i", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 29, text: " ==", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 32, text: " 0)", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\nprint", done: true, started: true }]
+y: 0, x: 17, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: " (i", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 29, text: " ==", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 32, text: " 0)", done: true, started: true }]
+y: 1, x: 13, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: " (i", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 29, text: " ==", done: true, started: true }]
+y: 1, x: 10, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 26, text: " (i", done: true, started: true }]
+y: 1, x: 7, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 20, text: " while", done: true, started: true }]
+y: 1, x: 1, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 18, text: "\n}", done: true, started: true }]
+y: 0, x: 17, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 16, text: " {", done: true, started: true }]
+y: 0, x: 15, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }, Action { typ: Delete, widget_id: 0, widget_type: None, cursor_position_byte: 17, text: "tn", done: true, started: true }]
+y: 0, x: 17, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 13, text: " dont", done: true, started: true }]
+y: 0, x: 12, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 8, text: " test", done: true, started: true }]
+y: 0, x: 7, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }, Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 5, text: " is", done: true, started: true }]
+y: 0, x: 4, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack [Action { typ: Insert, widget_id: 0, widget_type: None, cursor_position_byte: 1, text: "this", done: true, started: true }]
+y: 0, x: 0, scroll_lines: 0, scroll_columns: 0
+undo
+Undo stack []
+undo
+Undo stack []
+undo
+Undo stack []
+undo
+Undo stack []
+undo
+Undo stack []
+undo
+Undo stack []
+undo
+Undo stack []
+undo
+Undo stack []
+undo
+Undo stack []
+undo
+Undo stack []

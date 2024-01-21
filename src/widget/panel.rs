@@ -1,8 +1,13 @@
-use crossterm::event::Event;
 use crossterm::style::Color;
+use crossterm::{event::Event, style::Stylize};
 use ropey::Rope;
+use syntect::parsing::{SyntaxReference, SyntaxSet};
 
-use crate::{editor::TextEditor, widget::widget::WidgetType};
+use crate::{
+    action::{Action, ActionType},
+    editor::TextEditor,
+    widget::widget::WidgetType,
+};
 
 use super::widget::{
     BorderStyle, ColorText, CursorPosition, CursorPositionByte, ProcessEvent, ShouldExit,
@@ -37,6 +42,13 @@ pub struct Panel {
     pub text_position: CursorPositionByte,
 
     pub z_index: usize,
+
+    pub syntax: Option<SyntaxReference>,
+    pub theme: Option<String>,
+
+    pub undo_stack: Vec<Action>,
+    pub redo_stack: Vec<Action>,
+    pub current_action: Action,
 }
 
 impl Panel {
@@ -91,6 +103,11 @@ impl Default for Panel {
             text_position: 0,
             z_index: 0,
             colors: vec![],
+            syntax: None,
+            theme: None,
+            undo_stack: vec![],
+            redo_stack: vec![],
+            current_action: Action::default(),
         }
     }
 }
@@ -143,6 +160,86 @@ impl ProcessEvent for Panel {
     }
     fn get_z_idx(&self) -> usize {
         self.z_index
+    }
+    fn get_syntax(&self) -> Option<&SyntaxReference> {
+        self.syntax.as_ref()
+    }
+    fn get_theme(&self) -> Option<String> {
+        self.theme.clone()
+    }
+
+    fn undo(&mut self) -> Option<CursorPosition> {
+        if self.current_action.started {
+            self.current_action.done = true;
+            self.undo_stack.push(self.current_action.clone());
+            self.current_action = Action::default();
+        }
+        eprintln!("Undo stack {:?}", self.undo_stack);
+        if let Some(action) = self.undo_stack.pop() {
+            match action.typ {
+                ActionType::Insert => {
+                    self.redo_stack.push(action.clone());
+                    self.buffer.remove(
+                        action.cursor_position_byte - 1
+                            ..action.cursor_position_byte - 1 + action.text.len(),
+                    );
+                    self.text_position = action.cursor_position_byte - 1;
+                    return Some(self.update_cursor_position_and_view());
+                }
+                ActionType::Delete => {
+                    self.redo_stack.push(action.clone());
+                    self.buffer.insert(
+                        action.cursor_position_byte - action.text.len(),
+                        &action.text.chars().rev().collect::<String>(),
+                    );
+                    self.text_position = action.cursor_position_byte;
+                    return Some(self.update_cursor_position_and_view());
+                }
+                ActionType::MoveCursor => {
+                    self.redo_stack.push(action.clone());
+                    self.text_position = action.cursor_position_byte;
+                    return Some(self.update_cursor_position_and_view());
+                }
+                _ => {}
+            }
+        }
+        None
+    }
+
+    fn redo(&mut self) -> Option<CursorPosition> {
+        if self.current_action.started {
+            self.current_action.done = true;
+            self.undo_stack.push(self.current_action.clone());
+            self.current_action = Action::default();
+        }
+        eprintln!("Redo stack {:?}", self.redo_stack);
+        if let Some(action) = self.redo_stack.pop() {
+            match action.typ {
+                ActionType::Insert => {
+                    self.undo_stack.push(action.clone());
+                    self.buffer
+                        .insert(action.cursor_position_byte - 1, &action.text);
+                    self.text_position = action.cursor_position_byte - 1 + action.text.len();
+                    return Some(self.update_cursor_position_and_view());
+                }
+                ActionType::Delete => {
+                    self.undo_stack.push(action.clone());
+                    self.buffer.remove(
+                        action.cursor_position_byte - 1
+                            ..action.cursor_position_byte - 1 + action.text.len(),
+                    );
+                    self.text_position = action.cursor_position_byte - 1;
+                    return Some(self.update_cursor_position_and_view());
+                }
+                ActionType::MoveCursor => {
+                    self.undo_stack.push(action.clone());
+                    self.text_position = action.cursor_position_byte;
+                    return Some(self.update_cursor_position_and_view());
+                }
+                _ => {}
+            }
+        }
+        None
     }
 
     fn get_colors(&self) -> Vec<Vec<ColorText>> {
@@ -203,6 +300,12 @@ impl ProcessEvent for Panel {
     fn set_z_idx(&mut self, z_index: usize) {
         self.z_index = z_index;
     }
+    fn set_syntax(&mut self, syntax: Option<&SyntaxReference>) {
+        self.syntax = syntax.cloned();
+    }
+    fn set_theme(&mut self, theme: Option<String>) {
+        self.theme = theme;
+    }
 
     fn event(
         &mut self,
@@ -217,41 +320,113 @@ impl ProcessEvent for Panel {
                             self.buffer.insert_char(self.text_position, c);
                             self.text_position += 1;
                             editor.written = true;
+                            if self.current_action.started {
+                                if self.current_action.typ != ActionType::Insert
+                                    || (c == ' '
+                                        && self.current_action.text.len() > 0
+                                        && self.current_action.text.chars().last().unwrap() != ' ')
+                                {
+                                    self.current_action.done = true;
+                                    self.undo_stack.push(self.current_action.clone());
+                                    self.redo_stack.clear();
+                                    self.current_action = Action::new(
+                                        ActionType::Insert,
+                                        self.text_position,
+                                        "".to_string(),
+                                    );
+                                }
+                                self.current_action.text.push(c);
+                            } else {
+                                self.current_action = Action::new(
+                                    ActionType::Insert,
+                                    self.text_position,
+                                    c.to_string(),
+                                );
+                            }
                             return Some((self.update_cursor_position_and_view(), false));
                         }
                         _ => {}
                     },
                     crossterm::event::KeyModifiers::NONE => match key_event.code {
-                        crossterm::event::KeyCode::Tab => {
-                            // let targetable_widgets: usize = editor
-                            //     .widgets
-                            //     .iter()
-                            //     .filter(|w| w.get_targetable())
-                            //     .map(|w| w.get_id())
-                            //     .count();
-                            // if targetable_widgets == 0 {
-                            //     return Some((self.update_cursor_position_and_view(), true));
-                            // }
-                            // editor.widgets[0].set_focused(true);
-                            // return Some((
-                            //     editor.widgets[0].update_cursor_position_and_view(),
-                            //     false,
-                            // ));
-                        }
                         crossterm::event::KeyCode::Char(c) => {
                             self.buffer.insert_char(self.text_position, c);
                             self.text_position += 1;
                             editor.written = true;
+                            if self.current_action.started {
+                                if self.current_action.typ != ActionType::Insert
+                                    || (c == ' '
+                                        && self.current_action.text.len() > 0
+                                        && self.current_action.text.chars().last().unwrap() != ' ')
+                                {
+                                    self.current_action.done = true;
+                                    self.undo_stack.push(self.current_action.clone());
+
+                                    self.redo_stack.clear();
+                                    self.current_action = Action::new(
+                                        ActionType::Insert,
+                                        self.text_position,
+                                        "".to_string(),
+                                    );
+                                }
+                                self.current_action.text.push(c);
+                            } else {
+                                eprintln!("Insert");
+                                self.current_action = Action::new(
+                                    ActionType::Insert,
+                                    self.text_position,
+                                    c.to_string(),
+                                );
+                            }
                             return Some((self.update_cursor_position_and_view(), false));
                         }
                         crossterm::event::KeyCode::Enter => {
                             self.buffer.insert_char(self.text_position, '\n');
                             self.text_position += 1;
                             editor.written = true;
+                            if self.current_action.started {
+                                self.current_action.done = true;
+                                self.undo_stack.push(self.current_action.clone());
+
+                                self.redo_stack.clear();
+                                self.current_action = Action::new(
+                                    ActionType::Insert,
+                                    self.text_position,
+                                    "".to_string(),
+                                );
+                                self.current_action.text.push('\n');
+                            } else {
+                                self.current_action = Action::new(
+                                    ActionType::Insert,
+                                    self.text_position,
+                                    "\n".to_string(),
+                                );
+                            }
                             return Some((self.update_cursor_position_and_view(), false));
                         }
                         crossterm::event::KeyCode::Backspace => {
                             if self.text_position > 0 {
+                                if self.current_action.started {
+                                    if self.current_action.typ != ActionType::Delete {
+                                        self.current_action.done = true;
+                                        self.undo_stack.push(self.current_action.clone());
+
+                                        self.redo_stack.clear();
+                                        self.current_action = Action::new(
+                                            ActionType::Delete,
+                                            self.text_position,
+                                            "".to_string(),
+                                        );
+                                    }
+                                    self.current_action
+                                        .text
+                                        .push(self.buffer.char(self.text_position - 1));
+                                } else {
+                                    self.current_action = Action::new(
+                                        ActionType::Delete,
+                                        self.text_position,
+                                        self.buffer.char(self.text_position - 1).to_string(),
+                                    );
+                                }
                                 self.buffer
                                     .remove(self.text_position - 1..self.text_position);
                                 self.text_position -= 1;

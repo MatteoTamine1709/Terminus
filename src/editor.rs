@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{collections::LinkedList, path::PathBuf};
 
 use crossterm::{
     cursor,
@@ -7,7 +7,10 @@ use crossterm::{
 };
 use std::io::{stdout, Write};
 
-use crate::widget::widget::{ProcessEvent, WidgetType};
+use crate::{
+    action::Action,
+    widget::widget::{ProcessEvent, WidgetType},
+};
 
 use super::widget::widget::CursorPosition;
 
@@ -18,6 +21,9 @@ pub struct TextEditor {
     pub saved: bool,
 
     pub running: bool,
+
+    pub width: usize,
+    pub height: usize,
     /// widgets
     widgets: Vec<Box<dyn ProcessEvent>>,
     new_widgets: Vec<Box<dyn ProcessEvent>>,
@@ -27,7 +33,7 @@ pub struct TextEditor {
 }
 
 impl TextEditor {
-    pub fn new(save_path: &PathBuf) -> Self {
+    pub fn new(save_path: &PathBuf, width: usize, height: usize) -> Self {
         Self {
             running: true,
             save_path: save_path.clone(),
@@ -38,6 +44,8 @@ impl TextEditor {
             written: false,
             saved: true,
             biggest_id: 0,
+            width,
+            height,
         }
     }
 
@@ -56,6 +64,11 @@ impl TextEditor {
             .last_mut()
             .unwrap()
             .update_cursor_position_and_view();
+        if self.widgets.len() == 1 {
+            self.focused_widget_id = idx;
+        } else if self.widgets.last().unwrap().get_focused() {
+            self.focused_widget_id = idx;
+        }
         execute!(stdout(), cursor::MoveTo(pos.0 as u16, pos.1 as u16)).unwrap();
         stdout().flush().unwrap();
         return idx;
@@ -187,6 +200,13 @@ impl TextEditor {
             Event::Key(key) => {
                 if key.modifiers == KeyModifiers::CONTROL {
                     match key.code {
+                        crossterm::event::KeyCode::Char('z') => {
+                            eprintln!("undo");
+                            return widget.undo();
+                        }
+                        crossterm::event::KeyCode::Char('y') => {
+                            return widget.redo();
+                        }
                         crossterm::event::KeyCode::Char('q')
                         | crossterm::event::KeyCode::Char('c') => {
                             self.running = false;
@@ -323,6 +343,11 @@ impl TextEditor {
                         }
                         crossterm::event::KeyCode::Down => {
                             let line = widget.get_buffer().byte_to_line(widget.get_text_position());
+                            eprintln!(
+                                "line: {}, len_lines: {}",
+                                line,
+                                widget.get_buffer().len_lines()
+                            );
                             if widget.get_buffer().len_lines() >= 2
                                 && line < widget.get_buffer().len_lines() - 2
                             {
@@ -397,8 +422,10 @@ impl TextEditor {
         let mut cursor_position: (i32, i32) = (0, 0);
         let mut is_cursor_visible = true;
         self.new_widgets.clear();
+        let mut focus_has_already_been_consumed = false;
         while let Some(mut widget) = self.widgets.pop() {
-            if widget.get_id() == self.focused_widget_id {
+            if !focus_has_already_been_consumed && widget.get_id() == self.focused_widget_id {
+                focus_has_already_been_consumed = true;
                 widget.set_focused(true);
                 if let Some((pos, should_exit)) = widget.event(self, event) {
                     cursor_position = pos;

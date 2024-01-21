@@ -11,11 +11,13 @@ use ropey::{Rope, RopeSlice};
 use syntect::{
     easy::HighlightLines,
     highlighting::{Style, ThemeSet},
-    parsing::SyntaxSet,
-    util::LinesWithEndings,
+    parsing::{SyntaxReference, SyntaxSet},
 };
 
 use super::super::editor::TextEditor;
+
+pub static mut PS: Option<SyntaxSet> = None;
+pub static mut TS: Option<ThemeSet> = None;
 
 pub type ShouldExit = bool;
 pub type CursorPosition = (i32, i32);
@@ -117,6 +119,12 @@ pub trait ProcessEvent {
     fn get_type(&self) -> WidgetType;
     fn get_id(&self) -> usize;
     fn get_z_idx(&self) -> usize;
+    fn get_syntax(&self) -> Option<&SyntaxReference> {
+        None
+    }
+    fn get_theme(&self) -> Option<String> {
+        None
+    }
 
     fn get_colors(&self) -> Vec<Vec<ColorText>>;
     fn get_colors_mut(&mut self) -> &mut Vec<Vec<ColorText>>;
@@ -156,12 +164,21 @@ pub trait ProcessEvent {
     fn set_type(&mut self, id: WidgetType);
     fn set_id(&mut self, id: usize);
     fn set_z_idx(&mut self, z_idx: usize);
+    fn set_syntax(&mut self, _syntax: Option<&SyntaxReference>) {}
+    fn set_theme(&mut self, _theme: Option<String>) {}
 
     fn get_offset(&self) -> usize {
         match self.get_border_style() {
             BorderStyle::None => 0,
             BorderStyle::Solid | BorderStyle::Dashed => 1,
         }
+    }
+
+    fn undo(&mut self) -> Option<CursorPosition> {
+        None
+    }
+    fn redo(&mut self) -> Option<CursorPosition> {
+        None
     }
 
     fn render_box(&self, chars: [&str; 6]) {
@@ -248,14 +265,13 @@ pub trait ProcessEvent {
         let x = self.get_x() + offset;
         let mut y = self.get_y() + offset;
 
-        let fg = self.get_default_fg();
-        let bg = self.get_default_bg();
-
-        let ps = SyntaxSet::load_defaults_nonewlines();
-        let ts = ThemeSet::load_defaults();
-
-        let syntax = ps.find_syntax_by_extension("rs").unwrap();
-        let mut h = HighlightLines::new(syntax, &ts.themes["base16-ocean.dark"]);
+        let ps = unsafe { PS.as_ref().unwrap() };
+        let ts = unsafe { TS.as_ref().unwrap() };
+        let syntax = self.get_syntax().unwrap_or(&ps.find_syntax_plain_text());
+        let mut h = HighlightLines::new(
+            syntax,
+            &ts.themes[&self.get_theme().unwrap_or("base16-ocean.dark".to_string())],
+        );
 
         let mut colors = self.get_colors();
         for color_line in &mut colors {
@@ -432,6 +448,13 @@ pub trait ProcessEvent {
         let mut y = self.get_buffer().byte_to_line(self.get_text_position());
         let mut x = self.get_text_position() - self.get_buffer().line_to_byte(y);
 
+        eprintln!(
+            "y: {}, x: {}, scroll_lines: {}, scroll_columns: {}",
+            y,
+            x,
+            self.get_scroll_lines(),
+            self.get_scroll_columns()
+        );
         if y < self.get_scroll_lines() {
             self.set_scroll_lines(y);
         }

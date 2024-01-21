@@ -31,7 +31,7 @@ pub fn setup_terminal(disable_mouse_interaction: bool) {
         cursor::SavePosition,
         // so it won't clutter other activities
         EnterAlternateScreen,
-        EnableMouseCapture,
+        DisableMouseCapture,
         PushKeyboardEnhancementFlags(
             crossterm::event::KeyboardEnhancementFlags::REPORT_EVENT_TYPES
         ),

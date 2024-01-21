@@ -3,12 +3,16 @@ use std::{collections::HashMap, fs};
 use crossterm::{event::Event, style::Color};
 use regex::Regex;
 use ropey::Rope;
+use syntect::parsing::SyntaxReference;
 
 use crate::{editor::TextEditor, widget::popup::Popup};
 
-use super::widget::{
-    BorderStyle, ColorText, ColorTextTag, CursorPosition, CursorPositionByte, ProcessEvent,
-    ShouldExit, WidgetType,
+use super::{
+    status_bar,
+    widget::{
+        BorderStyle, ColorText, ColorTextTag, CursorPosition, CursorPositionByte, ProcessEvent,
+        ShouldExit, WidgetType, PS,
+    },
 };
 
 trait CommandLineCommands {
@@ -17,19 +21,25 @@ trait CommandLineCommands {
         editor: &mut TextEditor,
         args: Vec<String>,
         event: Event,
-    );
+    ) -> Option<CursorPosition>;
     fn find(
         command_line: &mut CommandLine,
         editor: &mut TextEditor,
         args: Vec<String>,
         event: Event,
-    );
+    ) -> Option<CursorPosition>;
+    fn open(
+        command_line: &mut CommandLine,
+        editor: &mut TextEditor,
+        args: Vec<String>,
+        event: Event,
+    ) -> Option<CursorPosition>;
     fn save(
         command_line: &mut CommandLine,
         editor: &mut TextEditor,
         args: Vec<String>,
         event: Event,
-    );
+    ) -> Option<CursorPosition>;
 }
 
 pub struct CommandLine {
@@ -64,12 +74,18 @@ pub struct CommandLine {
 
     commands: HashMap<
         String,
-        fn(command_line: &mut Self, editor: &mut TextEditor, args: Vec<String>, event: Event),
+        fn(
+            command_line: &mut Self,
+            editor: &mut TextEditor,
+            args: Vec<String>,
+            event: Event,
+        ) -> Option<CursorPosition>,
     >,
     positions: Vec<(CursorPositionByte, usize)>,
     position_idx: usize,
 
     list_popup: Option<(WidgetType, usize)>,
+    bash_popup: Option<(WidgetType, usize)>,
 
     z_idx: usize,
 }
@@ -97,10 +113,11 @@ impl CommandLine {
                     editor: &mut TextEditor,
                     args: Vec<String>,
                     event: Event,
-                ),
+                ) -> Option<CursorPosition>,
             > = HashMap::new();
             m.insert(":quit".to_string(), Self::quit);
             m.insert(":find".to_string(), Self::find);
+            m.insert(":open".to_string(), Self::open);
             m.insert(":save".to_string(), Self::save);
             m
         };
@@ -174,16 +191,43 @@ impl CommandLine {
         args
     }
 
-    fn execute_command(&mut self, editor: &mut TextEditor, event: &Event) {
-        // Do this
-        let args: Vec<String> = self.parse_command_line();
-        eprintln!("args: {:?}", args);
-        if args.len() > 0 {
-            if let Some(command) = self.commands.get(&args[0]) {
-                command(self, editor, args, event.clone())
+    fn execute_command(
+        &mut self,
+        editor: &mut TextEditor,
+        event: &Event,
+    ) -> Option<CursorPosition> {
+        if self.buffer.chars().next() == Some(':') {
+            let args: Vec<String> = self.parse_command_line();
+            eprintln!("args: {:?}", args);
+            if args.len() > 0 {
+                if let Some(command) = self.commands.get(&args[0]) {
+                    let res = command(self, editor, args, event.clone());
+                    self.old_buffer = self.buffer.clone();
+                    return res;
+                }
             }
+        } else {
+            match event {
+                Event::Key(key_event) => {
+                    if key_event.code != crossterm::event::KeyCode::Enter {
+                        return None;
+                    }
+                }
+
+                _ => return None,
+            }
+            // This is a bash command, execute it, dont need to parse
+            let output = std::process::Command::new("sh")
+                .arg("-c")
+                .arg(self.buffer.to_string())
+                .output()
+                .expect("failed to execute process");
+            let output = String::from_utf8_lossy(&output.stdout);
+            eprintln!("output: {:?}", output);
+            return Some(self.create_output_bash_popup(editor, output.to_string()));
         }
-        self.old_buffer = self.buffer.clone();
+
+        None
     }
 
     fn next_position(&mut self, editor: &mut TextEditor) -> (CursorPositionByte, usize) {
@@ -215,7 +259,70 @@ impl CommandLine {
         }
     }
 
-    fn create_popup(&mut self, editor: &mut TextEditor) {
+    fn create_output_bash_popup(
+        &mut self,
+        editor: &mut TextEditor,
+        text: String,
+    ) -> CursorPosition {
+        // Delete the old popup
+        if let Some((typ, id)) = self.bash_popup {
+            editor.remove_widget_id(id, typ);
+            self.bash_popup = None;
+        }
+        let mut new_line_count = 0;
+        let mut max_len = 0;
+        let mut curr_len = 0;
+        text.chars().for_each(|c| {
+            curr_len += 1;
+            if c == '\n' {
+                if curr_len > max_len {
+                    max_len = curr_len;
+                }
+                new_line_count += 1;
+            }
+        });
+
+        new_line_count += 1;
+        let y = if self.get_cursor_view().1 - new_line_count - 2 < 0 {
+            0
+        } else {
+            self.get_cursor_view().1 - new_line_count - 2
+        };
+        if new_line_count > editor.height as i32 - 2 {
+            new_line_count = editor.height as i32 - 2;
+        }
+        max_len = if max_len > self.get_width() {
+            self.get_width()
+        } else {
+            max_len
+        };
+        let mut widget = Popup::new(
+            text,
+            0,
+            y as usize,
+            max_len,
+            new_line_count as usize,
+            Color::Grey,
+            Color::Blue,
+            true,
+            true,
+            BorderStyle::Dashed,
+        );
+        let syntax: &SyntaxReference = unsafe {
+            PS.as_ref()
+                .unwrap()
+                .find_syntax_by_extension("sh")
+                .unwrap_or(PS.as_ref().unwrap().find_syntax_plain_text())
+        };
+        widget.set_syntax(Some(syntax));
+        widget.set_theme(Some("base16-eighties.dark".to_string()));
+        widget.set_z_idx(10);
+        let new_position = widget.get_cursor_view();
+        self.bash_popup = Some((WidgetType::Popup, editor.add_widget(widget)));
+        new_position
+    }
+
+    fn create_list_command_popup(&mut self, editor: &mut TextEditor) {
         // Delete the old popup
         if let Some((typ, id)) = self.list_popup {
             editor.remove_widget_id(id, typ);
@@ -247,7 +354,7 @@ impl CommandLine {
         eprintln!("popup: {:?}", self.list_popup)
     }
 
-    fn update_popup(&mut self, editor: &mut TextEditor) {
+    fn update_command_list_popup(&mut self, editor: &mut TextEditor) {
         if let Some((typ, id)) = self.list_popup {
             if let Some(widget) = editor.get_widget_id_mut(id, typ) {
                 let current_buffer = self.buffer.to_string();
@@ -255,14 +362,19 @@ impl CommandLine {
                 let mut max_len = 0;
                 let mut number_of_commands = 0;
                 for (key, _) in &self.commands {
-                    if key.len() > max_len {
-                        max_len = key.len();
-                    }
                     if key.starts_with(&current_buffer) || current_buffer.starts_with(key) {
+                        if key.len() > max_len {
+                            max_len = key.len();
+                        }
                         text.push_str(key);
                         text.push_str("\n");
                         number_of_commands += 1;
                     }
+                }
+                if max_len == 0 {
+                    editor.remove_widget_id(id, typ);
+                    self.list_popup = None;
+                    return;
                 }
                 widget.set_x(self.get_cursor_view().0 as usize);
                 widget.set_y(self.get_cursor_view().1 as usize - number_of_commands - 2);
@@ -280,10 +392,11 @@ impl CommandLineCommands for CommandLine {
         editor: &mut TextEditor,
         _args: Vec<String>,
         _event: Event,
-    ) {
+    ) -> Option<CursorPosition> {
         if command_line.old_buffer.cmp(&command_line.buffer) == std::cmp::Ordering::Equal {
             editor.running = false;
         }
+        None
     }
 
     fn find(
@@ -291,7 +404,7 @@ impl CommandLineCommands for CommandLine {
         editor: &mut TextEditor,
         args: Vec<String>,
         _event: Event,
-    ) {
+    ) -> Option<CursorPosition> {
         if args.len() < 2 {
             command_line.positions.clear();
             command_line.position_idx = 0;
@@ -300,7 +413,7 @@ impl CommandLineCommands for CommandLine {
                     c.tag == ColorTextTag::Selection || c.tag == ColorTextTag::Find
                 });
             }
-            return;
+            return None;
         }
         let search_term = &args[1];
         if command_line.positions.len() > 0
@@ -325,7 +438,7 @@ impl CommandLineCommands for CommandLine {
                     },
                 );
             }
-            return;
+            return Some(command_line.update_cursor_position_and_view());
         }
         command_line.positions.clear();
         command_line.position_idx = 0;
@@ -375,9 +488,15 @@ impl CommandLineCommands for CommandLine {
                         });
                 }
             } else {
-                let search_term = if search_term.starts_with('"') && search_term.ends_with('"') {
+                let search_term = if search_term.starts_with('"')
+                    && search_term.ends_with('"')
+                    && search_term.len() > 2
+                {
                     &search_term[1..search_term.len() - 1]
-                } else if search_term.starts_with('\'') && search_term.ends_with('\'') {
+                } else if search_term.starts_with('\'')
+                    && search_term.ends_with('\'')
+                    && search_term.len() > 2
+                {
                     &search_term[1..search_term.len() - 1]
                 } else {
                     search_term
@@ -435,6 +554,50 @@ impl CommandLineCommands for CommandLine {
                 panel.update_cursor_position_and_view();
             }
         }
+        None
+    }
+
+    fn open(
+        command_line: &mut CommandLine,
+        editor: &mut TextEditor,
+        args: Vec<String>,
+        event: Event,
+    ) -> Option<CursorPosition> {
+        if args.len() < 2 {
+            return None;
+        }
+        // if event != Enter
+        match event {
+            Event::Key(key_event) => {
+                if key_event.code != crossterm::event::KeyCode::Enter {
+                    return None;
+                }
+            }
+
+            _ => return None,
+        }
+        let path = &args[1];
+        // Open the file
+        if let Some(panel) = editor.get_widget(WidgetType::Panel) {
+            editor.focused_widget_id = panel.get_id();
+        }
+        if let Some(panel) = editor.get_widget_mut(WidgetType::Panel) {
+            let buffer = fs::read_to_string(path).unwrap();
+            eprintln!("buffer: {:?}", buffer);
+            panel.set_buffer(Rope::from_str(&buffer));
+            panel.set_text_position(0);
+            let res = panel.update_cursor_position_and_view();
+            panel.remove_color(&|c: &ColorText| {
+                c.tag == ColorTextTag::Selection || c.tag == ColorTextTag::Find
+            });
+            editor.written = false;
+            command_line.buffer = Rope::from_str("");
+            command_line.text_position = 0;
+            command_line.focused = false;
+            command_line.old_buffer = command_line.buffer.clone();
+            return Some(res);
+        }
+        None
     }
 
     fn save(
@@ -442,19 +605,19 @@ impl CommandLineCommands for CommandLine {
         editor: &mut TextEditor,
         args: Vec<String>,
         event: Event,
-    ) {
+    ) -> Option<CursorPosition> {
         if args.len() < 2 {
-            return;
+            return None;
         }
         // if event != Enter
         match event {
             Event::Key(key_event) => {
                 if key_event.code != crossterm::event::KeyCode::Enter {
-                    return;
+                    return None;
                 }
             }
 
-            _ => return,
+            _ => return None,
         }
         let path = &args[1];
         // Save the file
@@ -470,6 +633,10 @@ impl CommandLineCommands for CommandLine {
             command_line.focused = false;
             command_line.old_buffer = command_line.buffer.clone();
         }
+        if let Some(status_bar) = editor.get_widget_mut(WidgetType::StatusBar) {
+            status_bar.set_buffer(Rope::from_str(path));
+        }
+        None
     }
 }
 
@@ -497,6 +664,7 @@ impl Default for CommandLine {
             positions: Vec::new(),
             position_idx: 0,
             list_popup: None,
+            bash_popup: None,
             z_idx: 0,
             colors: Vec::new(),
         }
@@ -624,8 +792,11 @@ impl ProcessEvent for CommandLine {
                         crossterm::event::KeyCode::Char(c) => {
                             self.buffer.insert_char(self.text_position, c);
                             self.text_position += 1;
-                            self.execute_command(editor, event);
-                            self.update_popup(editor);
+                            let position = self.execute_command(editor, event);
+                            self.update_command_list_popup(editor);
+                            if let Some(position) = position {
+                                return Some((position, false));
+                            }
                             return Some((self.update_cursor_position_and_view(), false));
                         }
                         _ => {}
@@ -633,11 +804,29 @@ impl ProcessEvent for CommandLine {
                 }
                 if key_event.modifiers == crossterm::event::KeyModifiers::NONE {
                     match key_event.code {
-                        crossterm::event::KeyCode::Tab => self.create_popup(editor),
+                        crossterm::event::KeyCode::Tab => {
+                            eprintln!("command line tab");
+                            if let Some((bash_popup_type, bash_popup_id)) = self.bash_popup {
+                                editor.focused_widget_id = bash_popup_id;
+                                if let Some(widget) =
+                                    editor.get_widget_id_mut(bash_popup_id, bash_popup_type)
+                                {
+                                    self.focused = false;
+                                    widget.set_focused(true);
+                                    return Some((widget.update_cursor_position_and_view(), false));
+                                }
+                            }
+                            self.create_list_command_popup(editor)
+                        }
                         crossterm::event::KeyCode::Esc => {
                             if let Some((typ, id)) = self.list_popup {
                                 editor.remove_widget_id(id, typ);
                                 self.list_popup = None;
+                                return Some((self.update_cursor_position_and_view(), false));
+                            }
+                            if let Some((typ, id)) = self.bash_popup {
+                                editor.remove_widget_id(id, typ);
+                                self.bash_popup = None;
                                 return Some((self.update_cursor_position_and_view(), false));
                             }
                             self.focused = false;
@@ -656,8 +845,11 @@ impl ProcessEvent for CommandLine {
                         crossterm::event::KeyCode::Char(c) => {
                             self.buffer.insert_char(self.text_position, c);
                             self.text_position += 1;
-                            self.execute_command(editor, event);
-                            self.update_popup(editor);
+                            let position = self.execute_command(editor, event);
+                            self.update_command_list_popup(editor);
+                            if let Some(position) = position {
+                                return Some((position, false));
+                            }
                             return Some((self.update_cursor_position_and_view(), false));
                         }
                         crossterm::event::KeyCode::Backspace => {
@@ -666,12 +858,19 @@ impl ProcessEvent for CommandLine {
                                     .remove(self.text_position - 1..self.text_position);
                                 self.text_position -= 1;
                             }
-                            self.execute_command(editor, event);
-                            self.update_popup(editor);
+                            let position = self.execute_command(editor, event);
+                            self.update_command_list_popup(editor);
+                            if let Some(position) = position {
+                                return Some((position, false));
+                            }
                             return Some((self.update_cursor_position_and_view(), false));
                         }
                         crossterm::event::KeyCode::Enter => {
-                            self.execute_command(editor, event);
+                            let position = self.execute_command(editor, event);
+                            self.update_command_list_popup(editor);
+                            if let Some(position) = position {
+                                return Some((position, false));
+                            }
                         }
                         _ => {}
                     }
@@ -686,7 +885,7 @@ impl ProcessEvent for CommandLine {
                     }
                 }
             }
-            self.update_popup(editor);
+            self.update_command_list_popup(editor);
         }
         return None;
     }

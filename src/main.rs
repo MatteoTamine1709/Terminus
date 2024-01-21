@@ -1,4 +1,5 @@
 // 'aaaa' -> 'aaaa'
+mod action;
 mod editor;
 mod terminal;
 mod widget;
@@ -15,22 +16,30 @@ use terminal::cleanup_terminal;
 use widget::widget::BorderStyle;
 
 use crate::widget::{
-    command_line::CommandLine, line_number::LineNumber, panel::Panel, status_bar::StatusBar,
-    widget::ProcessEvent,
+    command_line::CommandLine,
+    line_number::LineNumber,
+    panel::Panel,
+    status_bar::StatusBar,
+    widget::{ProcessEvent, PS, TS},
 }; // test
-use crossterm::execute;
 
-use syntect::easy::HighlightLines;
-use syntect::highlighting::{Style, ThemeSet};
 use syntect::parsing::SyntaxSet;
-use syntect::util::{as_24_bit_terminal_escaped, LinesWithEndings};
+use syntect::{highlighting::ThemeSet, parsing::SyntaxReference};
 
 pub fn main_loop(file_content: String, save_path: PathBuf, new_load: bool) {
+    unsafe {
+        let ps = SyntaxSet::load_defaults_nonewlines();
+        PS = Some(ps);
+    };
+    unsafe {
+        let ts = ThemeSet::load_defaults();
+        TS = Some(ts);
+    };
     let aaaa = "aaaa";
     let (width, height) = size().unwrap();
     println!("width: {}, height: {}", width, height);
     terminal::setup_terminal(true);
-    let mut editor = TextEditor::new(&save_path);
+    let mut editor = TextEditor::new(&save_path, width as usize, height as usize);
     editor.written = new_load;
     let line_number_width = 8;
     eprintln!("line_number_width: {}", line_number_width);
@@ -47,6 +56,23 @@ pub fn main_loop(file_content: String, save_path: PathBuf, new_load: bool) {
         true,
         BorderStyle::None,
     );
+    let syntax: &SyntaxReference;
+    unsafe {
+        if save_path.extension().is_some() {
+            syntax = PS
+                .as_ref()
+                .unwrap()
+                .find_syntax_by_extension(save_path.extension().unwrap().to_str().unwrap())
+                .unwrap_or(PS.as_ref().unwrap().find_syntax_plain_text());
+        } else {
+            syntax = PS.as_ref().unwrap().find_syntax_plain_text();
+        }
+    };
+    main.set_syntax(Some(syntax));
+    // base16-ocean.dark,base16-eighties.dark,base16-mocha.dark,base16-ocean.light
+    // InspiredGitHub from here
+    // Solarized (dark) and Solarized (light)
+    main.set_theme(Some("base16-eighties.dark".to_string()));
     main.set_z_idx(1);
 
     let status_bar: Box<StatusBar> = StatusBar::new(

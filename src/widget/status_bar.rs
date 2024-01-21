@@ -25,7 +25,7 @@ fn get_git_branch_name(repo_path: &Path) -> io::Result<String> {
         .ok_or(io::Error::new(ErrorKind::Other, "Branch name not found"))
 }
 
-static TOTAL_FILE_INFO_WIDTH: usize = 25;
+static TOTAL_FILE_INFO_WIDTH: usize = 45;
 static TOTAL_POS_INFO_WIDTH: usize = 20;
 
 pub struct StatusBar {
@@ -258,31 +258,6 @@ impl ProcessEvent for StatusBar {
         editor: &mut TextEditor,
         event: &Event,
     ) -> Option<(CursorPosition, ShouldExit)> {
-        if self.focused {
-            if let Event::Key(key_event) = event {
-                match key_event.modifiers {
-                    crossterm::event::KeyModifiers::NONE => match key_event.code {
-                        crossterm::event::KeyCode::Esc => {
-                            self.focused = false;
-                            return Some((self.update_cursor_position_and_view(), false));
-                        }
-                        crossterm::event::KeyCode::Char(c) => {
-                            self.buffer.insert_char(self.text_position, c);
-                            self.text_position += 1;
-                        }
-                        crossterm::event::KeyCode::Backspace => {
-                            if self.text_position > 0 {
-                                self.buffer
-                                    .remove(self.text_position - 1..self.text_position);
-                                self.text_position -= 1;
-                            }
-                        }
-                        _ => {}
-                    },
-                    _ => {}
-                }
-            }
-        }
         {
             let current = self.get_buffer().to_string();
             let parts = current.split(' ').collect::<Vec<&str>>();

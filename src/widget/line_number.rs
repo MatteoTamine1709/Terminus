@@ -211,7 +211,7 @@ impl ProcessEvent for LineNumber {
     ) -> Option<(CursorPosition, ShouldExit)> {
         {
             if let Some(panel) = editor.get_widget(WidgetType::Panel) {
-                let is_relative = false;
+                let is_relative = true;
                 let mut line_number = String::new();
                 let max_lines = panel.get_buffer().len_lines();
                 let max_v = if max_lines < panel.get_height() {
